@@ -1,0 +1,190 @@
+---
+title: "Data_Layers"
+author: "Sandra Fogg"
+date: "11/5/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+# Load the Required Packages
+library(tidyverse)
+library(sf)
+library(sp)
+library(rgdal)
+library(raster)
+library(dplyr)
+library(rgeos)
+library(scales)
+library(fasterize)
+library(dismo)
+library(maptools)
+library(sdmpredictors)
+library(maps)
+library(ncdf4)
+library(marmap)
+```
+
+
+Set-Up for Downloading Data Using the "Maricultura" Google Drive File Stream
+```{r}
+# Create a Root to Extract Files 
+if(Sys.info()["sysname"] == "Windows"){ #If operating system is "Windows" use G: Drive
+  team_path <- "G:/"
+} else { # If it is not (i.e. Mac), use the Google Drive File Stream
+  team_path <- "/Volumes/GoogleDrive/"
+}
+
+#Create the Full File Path
+path <- paste0(team_path, "Shared drives/Bren GP 2020 maricultura/Data/Raw_Data")
+
+```
+
+
+#Read in Data Layers from the Shared Drive: Bren GP 2020 maricultura/Data/Raw_Data/Active_Layers
+```{r}
+# Read in All Layers
+
+## Exclusive Economic Zone, EEZ
+eez <- read_sf(dsn = path,
+                layer = "eez_BRA")
+
+# Depth, Global Layer from GEBCO
+depth <- raster(paste0(path,"/gebco_2019_n7.045066_s-35.78779_w-54.58321_e-26.01452.tif"))
+
+
+# Reefs, Tropical Coral Reefs of the World
+reefs <-  read_sf(dsn = path,
+                layer = "reef_500_poly")
+
+# MPAs polygons
+mpas <- read_sf(dsn = path,
+                layer = "WDPA_Oct2019_marine-shapefile-polygons")
+
+# MPAs points
+mpas_points <- read_sf(dsn = path,
+                layer = "WDPA_Oct2019_marine-shapefile-points")
+
+# Ports
+ports <- read_sf(dsn = path,
+                layer = "tra_edif_const_portuaria_p")
+
+# Aquaculture
+
+aquaculture <-  read_sf(dsn = path,
+                layer = "Aquaculture")
+
+# No take zones
+
+no_take <-  read_sf(dsn = path,
+                layer = "No_Take_Zone_ACREshp")
+
+# Important wetlands Ramsar
+
+wetlands <-  read_sf(dsn = path,
+                layer = "Important_Wetlands_Ramsar")
+
+# Artificial reefs
+
+reefs_artificial <-  read_sf(dsn = path,
+                layer = "Artificial_Reefs")
+
+
+
+```
+
+# Plot data 
+```{r}
+# EEZ
+ggplot( data = eez) +
+  geom_sf()
+```
+
+```{r}
+# Depth
+plot(depth)
+
+hist(depth)
+```
+
+
+
+```{r}
+# MPAS
+# First filter data only for Brazil
+mpas_BR <- mpas %>% 
+  filter(ISO3 == "BRA")
+
+ggplot( data = mpas_BR) +
+  geom_sf()
+
+```
+
+
+```{r}
+# Ports
+ggplot( data = ports) +
+  geom_sf()
+
+```
+
+```{r}
+# Reefs
+ggplot( data = reefs) +
+  geom_sf()
+
+```
+
+
+```{r}
+# Aquaculture
+ggplot( data = aquaculture) +
+  geom_sf()
+```
+
+```{r}
+# No take zones
+ggplot( data = no_take) +
+  geom_sf()
+```
+
+```{r}
+# Important wetlands Ramsar
+ggplot( data = wetlands) +
+  geom_sf()
+```
+
+```{r}
+# Artificial coral reefs
+ggplot( data = reefs_artificial) +
+  geom_sf()
+```
+
+
+Buffering mpas
+```{r}
+mpas_buffer <- mpas_BR %>% 
+  st_centroid() %>% 
+  st_buffer(dist = 0.5) %>% # need to figure out how to use distance units
+  st_union()
+
+ggplot(mpas_buffer) +
+  geom_sf()
+```
+
+Download SST from Bio-Oracle
+```{r}
+# Explore datasets in the package 
+list_datasets() 
+
+# Explore layers in a dataset 
+list_layers() 
+
+# Download max and min sst layers
+ min_sst <- load_layers("BO_sstmin")
+max_sst <- load_layers("BO_sstmax")
+```
