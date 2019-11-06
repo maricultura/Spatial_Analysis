@@ -45,57 +45,43 @@ path <- paste0(team_path, "Shared drives/Bren GP 2020 maricultura/Data/Raw_Data"
 ```
 
 
-#Read in Data Layers from the Shared Drive: Bren GP 2020 maricultura/Data/Raw_Data/Active_Layers
+Read in Downloaded Data Layers from the Shared Drive: Bren GP 2020 maricultura/Data/Raw_Data/Active_Layers
 ```{r}
-# Read in All Layers
+# Read in All Downloaded Layers
 
-## Exclusive Economic Zone, EEZ
+## Exclusive Economic Zone, EEZ, marineregions.org
 eez <- read_sf(dsn = path,
                 layer = "eez_BRA")
 
-# Depth, Global Layer from GEBCO
-depth <- raster(paste0(path,"/gebco_2019_n7.045066_s-35.78779_w-54.58321_e-26.01452.tif"))
-
-
-# Reefs, Tropical Coral Reefs of the World
-reefs <-  read_sf(dsn = path,
-                layer = "reef_500_poly")
-
-# MPAs polygons
-mpas <- read_sf(dsn = path,
-                layer = "WDPA_Oct2019_marine-shapefile-polygons")
-
-# MPAs points
-mpas_points <- read_sf(dsn = path,
-                layer = "WDPA_Oct2019_marine-shapefile-points")
-
-# Ports
-ports <- read_sf(dsn = path,
-                layer = "tra_edif_const_portuaria_p")
-
-# Aquaculture
-
-aquaculture <-  read_sf(dsn = path,
-                layer = "Aquaculture")
-
-# No take zones
-
-no_take <-  read_sf(dsn = path,
-                layer = "No_Take_Zone_ACREshp")
-
-# Important wetlands Ramsar
-
-wetlands <-  read_sf(dsn = path,
-                layer = "Important_Wetlands_Ramsar")
-
-# Artificial reefs
-
-reefs_artificial <-  read_sf(dsn = path,
-                layer = "Artificial_Reefs")
 
 
 
 ```
+
+
+Read in Bio-Oracle
+```{r}
+#Explore Datasets and Layer Names in the Package 
+##Explore Datasets
+list_datasets() 
+
+##Explore Layers
+list_layers() 
+
+#Download the Minimum and Maximum Sea-Surface Temperature, SST
+min_sst <- load_layers("BO_sstmin")
+max_sst <- load_layers("BO_sstmax")
+
+
+#Download Current Velocity, (Maximum Velocity at Minimum Depth)
+ax_cv <- load_layers("BO2_curvelmax_bdmin")
+
+
+```
+
+
+
+
 
 # Plot data 
 ```{r}
