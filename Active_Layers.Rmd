@@ -159,11 +159,11 @@ current_BRA <- mask(current_BR, eez_BRA)
 
 
 # View Cropped Histogram
-hist(max_cv)
+hist(current_BRA)
 
 
 # View Cropped Plot
-plot(max_cv)
+plot(current_BRA)
 
 
 
