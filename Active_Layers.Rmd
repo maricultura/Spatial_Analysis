@@ -40,7 +40,7 @@ if(Sys.info()["sysname"] == "Windows"){ #If operating system is "Windows" use G:
 }
 
 #Create the Full File Path
-path <- paste0(team_path, "Shared drives/Bren GP 2020 maricultura/Data/Raw_Data")
+path <- paste0(team_path, "Shared drives/Bren GP 2020 maricultura/Data/Raw_Data/Active_Data_Layers")
 
 ```
 
@@ -51,8 +51,12 @@ Read in Downloaded Data Layers from the Shared Drive: Bren GP 2020 maricultura/D
 
 ## Exclusive Economic Zone, EEZ, marineregions.org
 eez <- read_sf(dsn = path,
-                layer = "eez_BRA")
+                layer = "eez_v10")
 
+eez_BRA <- eez %>% 
+  filter(ISO_Ter1 == "BRA")
+
+plot(eez_BRA$geometry)
 
 
 
@@ -74,7 +78,7 @@ max_sst <- load_layers("BO_sstmax")
 
 
 #Download Current Velocity, (Maximum Velocity at Minimum Depth)
-ax_cv <- load_layers("BO2_curvelmax_bdmin")
+max_cv <- load_layers("BO2_curvelmax_bdmin")
 
 
 ```
