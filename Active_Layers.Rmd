@@ -83,10 +83,6 @@ max_cv <- load_layers("BO2_curvelmax_bdmin")
 
 ```
 
-
-
-
-
 # Plot data 
 ```{r}
 # EEZ
@@ -101,80 +97,3 @@ plot(depth)
 hist(depth)
 ```
 
-
-
-```{r}
-# MPAS
-# First filter data only for Brazil
-mpas_BR <- mpas %>% 
-  filter(ISO3 == "BRA")
-
-ggplot( data = mpas_BR) +
-  geom_sf()
-
-```
-
-
-```{r}
-# Ports
-ggplot( data = ports) +
-  geom_sf()
-
-```
-
-```{r}
-# Reefs
-ggplot( data = reefs) +
-  geom_sf()
-
-```
-
-
-```{r}
-# Aquaculture
-ggplot( data = aquaculture) +
-  geom_sf()
-```
-
-```{r}
-# No take zones
-ggplot( data = no_take) +
-  geom_sf()
-```
-
-```{r}
-# Important wetlands Ramsar
-ggplot( data = wetlands) +
-  geom_sf()
-```
-
-```{r}
-# Artificial coral reefs
-ggplot( data = reefs_artificial) +
-  geom_sf()
-```
-
-
-Buffering mpas
-```{r}
-mpas_buffer <- mpas_BR %>% 
-  st_centroid() %>% 
-  st_buffer(dist = 0.5) %>% # need to figure out how to use distance units
-  st_union()
-
-ggplot(mpas_buffer) +
-  geom_sf()
-```
-
-Download SST from Bio-Oracle
-```{r}
-# Explore datasets in the package 
-list_datasets() 
-
-# Explore layers in a dataset 
-list_layers() 
-
-# Download max and min sst layers
- min_sst <- load_layers("BO_sstmin")
-max_sst <- load_layers("BO_sstmax")
-```
