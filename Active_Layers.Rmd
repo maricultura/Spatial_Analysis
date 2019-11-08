@@ -46,39 +46,64 @@ path <- paste0(team_path, "Shared drives/Bren GP 2020 maricultura/Data/Raw_Data/
 
 
 Read in Downloaded Data Layers from the Shared Drive: Bren GP 2020 maricultura/Data/Raw_Data/Active_Layers
-```{r}
-## Exclusive Economic Zone, EEZ, marineregions.org
 
+Exclusive Economic Zone, EEZ, marineregions.org
+```{r}
+
+# Read File
 eez <- read_sf(dsn = path,
                 layer = "eez_v10")
 
+
+# Reproject CRS
+
+
+# Crop to Brazil
 eez_BRA <- eez %>% 
   filter(ISO_Ter1 == "BRA")
 
+# Plot Brazil EEZ
 plot(eez_BRA$geometry)
 
 ```
 
-Minimum and Maximum Sea-Surface Temperature, SST
+Minimum and Maximum Sea-Surface Temperatures (SST), bio-oracle.org
 ```{r}
 # Download files
 min_sst <- load_layers("BO_sstmin")
 max_sst <- load_layers("BO_sstmax")
 
-# Histograms
+# View Histograms
 hist(min_sst)
 hist(max_sst)
 
-# Plots
+# View Plots
 plot(min_sst)
 plot(max_sst)
 
-# Cropping and masking to eez
+
+# Reproject CRS
+
+
+# Crop to Brazil EEZ
 max_sst_BR <- crop(max_sst, eez_BRA)
 min_sst_BR <- crop(min_sst, eez_BRA)
 
+
+# Mask to Brazil EEZ
 max_sst_BRA <- mask(max_sst_BR, eez_BRA)
 min_sst_BRA <- mask(min_sst_BR, eez_BRA)
+
+
+# View Cropped Histograms
+hist(max_sst_BRA)
+hist(min_sst_BRA)
+
+
+# View Cropped Plots
+plot(max_sst_BRA)
+plot(min_sst_BRA)
+
 ```
 
 Depth, gebco.net
@@ -86,18 +111,67 @@ Depth, gebco.net
 # Read file
 depth <- raster(paste0(path,"/gebco_2019_n7.045066_s-35.78779_w-54.58321_e-26.01452.tif"))
 
-# Crop
+
+# View Histograms
+hist(depth)
+
+
+# View Plots
+plot(depth)
+
+
+# Reproject CRS
+
+
+# Crop to Brazil EEZ 
 depth_BR <- crop(depth, eez_BRA)
 
-# Mask
+# Mask to Brazil EEZ
 depth_BRA <- mask(depth_BR, eez_BRA)
 
-# Resample so it has same resolution as SST layers
+# Resample to Bio-Oracle Cell Size (ATM Bio-Oracle Cell Size is the Standard)
 depth_BRA_res <- resample(depth_BRA, min_sst_BRA,method='ngb',progress='text')
 
+# View Cropped Plot
 plot(depth_BRA_res)
 
 ```
+
+
+Current Velocity, (Maximum Velocity at Minimum Depth)
+```{r}
+# Download File 
+max_cv <- load_layers("BO2_curvelmax_bdmin")
+
+
+# Reproject CRS
+
+
+# Crop to Brazil EEZ
+current_BR <- crop(max_cv, eez_BRA)
+
+
+# Mask to Brazil EEZ
+current_BRA <- mask(current_BR, eez_BRA)
+
+
+# Resample to Bio-Oracle Cell Size
+
+
+# View Cropped Histogram
+hist(max_cv)
+
+
+# View Cropped Plot
+plot(max_cv)
+
+
+
+```
+
+
+
+
 
 
 Read in Bio-Oracle
@@ -108,21 +182,6 @@ list_datasets()
 
 ##Explore Layers
 list_layers() 
-
-```
-
-
-
-Current Velocity, (Maximum Velocity at Minimum Depth)
-```{r}
-# Download layer 
-max_cv <- load_layers("BO2_curvelmax_bdmin")
-
-# Plot
-plot(max_cv)
-
-# Histogram
-hist(max_cv)
 
 ```
 
