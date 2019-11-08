@@ -62,11 +62,25 @@ sst_binary_max <- reclassify(max_sst_BRA, rcl = rcl_matrix_max)
 plot(sst_binary_max)
 ```
 
+```{r}
+# Reclassification matrix for current layer
+rcl_mat_current <- c(-Inf, 1, 1,
+                   1, Inf, 0)
+
+# Reclassify the depth layer
+current_binary <- reclassify(current_BRA ,rcl= rcl_mat_current)
+
+# Plot reclassified layer
+plot(current_binary)
+
+```
+
+
 Suitable areas
 ```{r}
 # Overlay all layers
 # Note: they all need to have the same extent and resolution
-suitable <- overlay(sst_binary_min, sst_binary_max, depth_binary, fun = function(x,y,z){x+y+z})
+suitable <- overlay(sst_binary_min, sst_binary_max, depth_binary,current_binary,  fun = function(w,x,y,z){w+x+y+\z})
 
 # Plot suitable areas
 plot(suitable)
