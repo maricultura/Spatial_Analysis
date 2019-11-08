@@ -47,8 +47,6 @@ path <- paste0(team_path, "Shared drives/Bren GP 2020 maricultura/Data/Raw_Data/
 
 Read in Downloaded Data Layers from the Shared Drive: Bren GP 2020 maricultura/Data/Raw_Data/Active_Layers
 ```{r}
-# Read in All Downloaded Layers
-
 ## Exclusive Economic Zone, EEZ, marineregions.org
 eez <- read_sf(dsn = path,
                 layer = "eez_v10")
@@ -58,7 +56,11 @@ eez_BRA <- eez %>%
 
 plot(eez_BRA$geometry)
 
+```
 
+```{r}
+## Depth, gebco.net
+depth <- raster(paste0(path,"/gebco_2019_n7.045066_s-35.78779_w-54.58321_e-26.01452.tif"))
 
 ```
 
