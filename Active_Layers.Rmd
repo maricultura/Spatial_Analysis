@@ -51,13 +51,6 @@ Read in Downloaded Data Layers from the Shared Drive: Bren GP 2020 maricultura/D
 
 eez <- read_sf(dsn = path,
                 layer = "eez_v10")
-proj4string(eez)
-class(eez)
-
-CRS("+init=epsg:5880")
-#CRS arguments:
-# +init=epsg:5880 +proj=poly +lat_0=0 +lon_0=-54 +x_0=5000000 +y_0=10000000
-#+ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs 
 
 eez_BRA <- eez %>% 
   filter(ISO_Ter1 == "BRA")
@@ -66,9 +59,43 @@ plot(eez_BRA$geometry)
 
 ```
 
+Minimum and Maximum Sea-Surface Temperature, SST
 ```{r}
-## Depth, gebco.net
+# Download files
+min_sst <- load_layers("BO_sstmin")
+max_sst <- load_layers("BO_sstmax")
+
+# Histograms
+hist(min_sst)
+hist(max_sst)
+
+# Plots
+plot(min_sst)
+plot(max_sst)
+
+# Cropping and masking to eez
+max_sst_BR <- crop(max_sst, eez_BRA)
+min_sst_BR <- crop(min_sst, eez_BRA)
+
+max_sst_BRA <- mask(max_sst_BR, eez_BRA)
+min_sst_BRA <- mask(min_sst_BR, eez_BRA)
+```
+
+Depth, gebco.net
+```{r}
+# Read file
 depth <- raster(paste0(path,"/gebco_2019_n7.045066_s-35.78779_w-54.58321_e-26.01452.tif"))
+
+# Crop
+depth_BR <- crop(depth, eez_BRA)
+
+# Mask
+depth_BRA <- mask(depth_BR, eez_BRA)
+
+# Resample so it has same resolution as SST layers
+depth_BRA_res <- resample(depth_BRA, min_sst_BRA,method='ngb',progress='text')
+
+plot(depth_BRA_res)
 
 ```
 
@@ -82,30 +109,39 @@ list_datasets()
 ##Explore Layers
 list_layers() 
 
-#Download the Minimum and Maximum Sea-Surface Temperature, SST
-min_sst <- load_layers("BO_sstmin")
-max_sst <- load_layers("BO_sstmax")
-
-plot(min_sst)
+```
 
 
-#Download Current Velocity, (Maximum Velocity at Minimum Depth)
+
+Current Velocity, (Maximum Velocity at Minimum Depth)
+```{r}
+# Download layer 
 max_cv <- load_layers("BO2_curvelmax_bdmin")
 
+# Plot
+plot(max_cv)
+
+# Histogram
+hist(max_cv)
 
 ```
 
-# Plot data 
+
+
+CRS
 ```{r}
-# EEZ
-ggplot( data = eez) +
-  geom_sf()
+proj4string(eez)
+class(eez)
+
+CRS("+init=epsg:5880")
+#CRS arguments:
+# +init=epsg:5880 +proj=poly +lat_0=0 +lon_0=-54 +x_0=5000000 +y_0=10000000
+#+ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs 
+
+eez_BRA <- eez %>% 
+  filter(ISO_Ter1 == "BRA")
 ```
 
-```{r}
-# Depth
-plot(depth)
 
-hist(depth)
-```
+
 
