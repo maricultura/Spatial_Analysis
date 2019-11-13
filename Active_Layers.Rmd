@@ -54,10 +54,6 @@ Exclusive Economic Zone, EEZ, marineregions.org
 eez <- read_sf(dsn = path,
                 layer = "eez_v10")
 
-
-# Reproject CRS
-
-
 # Crop to Brazil
 eez_BRA <- eez %>% 
   filter(ISO_Ter1 == "BRA")
@@ -83,7 +79,9 @@ plot(max_sst)
 
 
 # Reproject CRS
-
+# Have to turn into a sf to use st_transform
+#min_sst_rpj <- sp_transform(min_sst, CRS("+init=epsg:5880"))
+#max_sst_rpj <- st_transform(max_sst, CRS("+init=epsg:5880"))
 
 # Crop to Brazil EEZ
 max_sst_BR <- crop(max_sst, eez_BRA)
@@ -121,7 +119,8 @@ plot(depth)
 
 
 # Reproject CRS
-
+# Have to turn into a sf to use st_transform
+#depth_rpj <- st_transform(depth, CRS("+init=epsg:5880"))
 
 # Crop to Brazil EEZ 
 depth_BR <- crop(depth, eez_BRA)
@@ -145,7 +144,8 @@ max_cv <- load_layers("BO2_curvelmax_bdmin")
 
 
 # Reproject CRS
-
+# Have to turn into a sf to use st_transform
+#max_cv_rpj <- spTransform(max_cv, CRS("+init=epsg:5880"))
 
 # Crop to Brazil EEZ
 current_BR <- crop(max_cv, eez_BRA)
@@ -171,6 +171,32 @@ plot(current_BRA)
 
 
 
+Marine Protected Areas (MPAs)
+```{r}
+# Download File
+mpas <- read_sf(dsn = path,
+                layer = "WDPA_Mar2018_marine-shapefile-polygons")
+
+# Reproject CRS
+mpas_rpj <- st_transform(mpas, CRS("+init=epsg:5880"))
+
+
+# Crop to Brazil - necessary?
+#mpas_BRA <- crop(mpas_rpj, eez_BRA)
+
+
+# Resample to Bio-Oracle Cell Size (ATM Bio-Oracle Cell Size is the Standard)
+# Will not work because min_sst_BRA needs to be reprojected
+mpas_BRA_res <- resample(mpas_rpj, min_sst_BRA,method='ngb',progress='text')
+
+
+# Plot Brazil EEZ
+#plot(mpas_rpj)
+#Not sure if read in correctly, only 5 files in zip whereas other files zips have 8
+
+
+
+```
 
 
 
