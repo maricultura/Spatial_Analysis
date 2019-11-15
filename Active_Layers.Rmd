@@ -61,6 +61,8 @@ eez_BRA <- eez %>%
 # Plot Brazil EEZ
 plot(eez_BRA$geometry)
 
+st_crs(eez_BRA)
+
 ```
 
 Minimum and Maximum Sea-Surface Temperatures (SST), bio-oracle.org
@@ -120,7 +122,7 @@ plot(depth)
 
 # Reproject CRS
 # Have to turn into a sf to use st_transform
-#depth_rpj <- st_transform(depth, CRS("+init=epsg:5880"))
+depth_rpj <- projectRaster(from = depth, crs = "+proj=poly +lat_0=0 +lon_0=-54 +x_0=5000000 +y_0=10000000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs", method = "bilinear")
 
 # Crop to Brazil EEZ 
 depth_BR <- crop(depth, eez_BRA)
@@ -193,6 +195,14 @@ mpas_BRA_res <- resample(mpas_rpj, min_sst_BRA,method='ngb',progress='text')
 # Plot Brazil EEZ
 #plot(mpas_rpj)
 #Not sure if read in correctly, only 5 files in zip whereas other files zips have 8
+
+
+#There is a distance function in raster- you feed a raster that has both values and NAs nd it returns raster that calculates distance to nearest non NA cell
+#distance to shore
+
+# set max_land_distance <- 25
+
+#land_distance_mask <- land_distance < max_land_distance
 
 
 
