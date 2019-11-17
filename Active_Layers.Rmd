@@ -61,13 +61,14 @@ eez_BRA <- eez %>%
 # Plot Brazil EEZ
 plot(eez_BRA$geometry)
 
+# View CRS
 st_crs(eez_BRA)
 
 ```
 
 Minimum and Maximum Sea-Surface Temperatures (SST), bio-oracle.org
 ```{r}
-# Download files
+# Download Files
 min_sst <- load_layers("BO_sstmin")
 max_sst <- load_layers("BO_sstmax")
 
@@ -79,15 +80,17 @@ hist(max_sst)
 plot(min_sst)
 plot(max_sst)
 
+# View CRS
+ st_crs(min_sst)
+ st_crs(max_sst)
 
-# Reproject CRS
-# Have to turn into a sf to use st_transform
-#min_sst_rpj <- sp_transform(min_sst, CRS("+init=epsg:5880"))
-#max_sst_rpj <- st_transform(max_sst, CRS("+init=epsg:5880"))
 
 # Crop to Brazil EEZ
 max_sst_BR <- crop(max_sst, eez_BRA)
 min_sst_BR <- crop(min_sst, eez_BRA)
+
+
+# No Need to Reproject -> In Same CRS as EEZ
 
 
 # Mask to Brazil EEZ
@@ -120,9 +123,12 @@ hist(depth)
 plot(depth)
 
 
-# Reproject CRS
-# Have to turn into a sf to use st_transform
-depth_rpj <- projectRaster(from = depth, crs = "+proj=poly +lat_0=0 +lon_0=-54 +x_0=5000000 +y_0=10000000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs", method = "bilinear")
+# View CRS
+st_crs(depth)
+
+
+# No Need to Reproject -> In Same CRS as EEZ
+
 
 # Crop to Brazil EEZ 
 depth_BR <- crop(depth, eez_BRA)
@@ -145,9 +151,16 @@ Current Velocity, (Maximum Velocity at Minimum Depth)
 max_cv <- load_layers("BO2_curvelmax_bdmin")
 
 
-# Reproject CRS
-# Have to turn into a sf to use st_transform
-#max_cv_rpj <- spTransform(max_cv, CRS("+init=epsg:5880"))
+# View Histograms
+hist(max_cv)
+
+
+# View Plots
+plot(max_cv)
+
+
+# View CRS
+st_crs(depth)
 
 # Crop to Brazil EEZ
 current_BR <- crop(max_cv, eez_BRA)
