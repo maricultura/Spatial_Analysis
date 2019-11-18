@@ -19,7 +19,7 @@ library(beepr)
 Create a Raster for Distance to Shore
 ```{r}
 # Import Brazil Data from the "rnaturalearth" Package
-bound_BRA <- ne_coastline(scale = 110, country = "Brazil", returnclass = "sf")%>% 
+bound_BRA <- ne_coastline(scale = 110, returnclass = "sf")%>% 
   sf::st_crop(eez_BRA)
 
 bound
@@ -46,7 +46,7 @@ distance_nonNA <- distance(rasterized_coast)
 beep()
 
 # Export the Raster as .tif
-writeRaster(x = distance_nonNA, filename = paste0(path,"/distance_to_shore4.tif"), overwrite = F)
+writeRaster(x = distance_nonNA, filename = paste0(path,"/distance_to_shore_coastline.tif"), overwrite = F)
 
 # Plot Distance Raster
 plot(distance_nonNA)
