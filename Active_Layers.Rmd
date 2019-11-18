@@ -145,7 +145,7 @@ plot(depth_BRA_res)
 ```
 
 
-Current Velocity, (Maximum Velocity at Minimum Depth)
+Current Velocity, (Maximum Velocity at Minimum Depth), bio-oracle.org
 ```{r}
 # Download File 
 max_cv <- load_layers("BO2_curvelmax_bdmin")
@@ -160,17 +160,18 @@ plot(max_cv)
 
 
 # View CRS
-st_crs(depth)
+st_crs(max_cv)
+
 
 # Crop to Brazil EEZ
 current_BR <- crop(max_cv, eez_BRA)
 
 
+# No Need to Reproject -> In Same CRS as EEZ
+
+
 # Mask to Brazil EEZ
 current_BRA <- mask(current_BR, eez_BRA)
-
-
-# Resample to Bio-Oracle Cell Size
 
 
 # View Cropped Histogram
@@ -186,11 +187,27 @@ plot(current_BRA)
 
 
 
-Marine Protected Areas (MPAs)
+Marine Protected Areas (MPAs) - WWF
 ```{r}
 # Download File
 mpas <- read_sf(dsn = path,
                 layer = "WDPA_Mar2018_marine-shapefile-polygons")
+
+# View Histograms
+hist(mpas)
+
+
+# View Plots
+plot(mpas)
+
+
+# View CRS
+st_crs(mpas)
+
+
+# Crop to Brazil EEZ
+current_BR <- crop(mpas, eez_BRA)
+
 
 # Reproject CRS
 mpas_rpj <- st_transform(mpas, CRS("+init=epsg:5880"))
