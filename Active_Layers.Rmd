@@ -27,6 +27,11 @@ library(sdmpredictors)
 library(maps)
 library(ncdf4)
 library(marmap)
+library(rnaturalearth)
+library(wdpar)
+library(dplyr)
+library(ggmap)
+
 ```
 
 
@@ -186,6 +191,7 @@ plot(current_BRA)
 ```
 
 
+---------Messy Beyond This Point-----------------
 
 Marine Protected Areas (MPAs) - WWF
 ```{r}
@@ -193,12 +199,14 @@ Marine Protected Areas (MPAs) - WWF
 mpas <- read_sf(dsn = path,
                 layer = "WDPA_Mar2018_marine-shapefile-polygons")
 
-# View Histograms
-hist(mpas)
 
+# Filter MPAs for Brazil
+mpas_BR <- mpas %>% 
+  filter(ISO3 == "BRA")
 
-# View Plots
-plot(mpas)
+# Plot MPAs
+ggplot( data = mpas_BR) +
+  geom_sf()
 
 
 # View CRS
@@ -234,13 +242,75 @@ mpas_BRA_res <- resample(mpas_rpj, min_sst_BRA,method='ngb',progress='text')
 
 #land_distance_mask <- land_distance < max_land_distance
 
+# Download Protected Area Data for Brazil (Excludes Areas Represented as Point Localities)
+BRA_raw_pa_data <- wdpa_fetch("Brazil")
+
+# Clean the Data. Steps Include: excluding protected areas that are not yet implemented, excluding protected areas with limited conservation value, replacing missing data codes (e.g. "0") with missing data values (i.e. NA), replacing protected areas represented as points with circular protected areas that correspond to their reported extent, repairing any topological issues with the geometries, and erasing overlapping areas. 
+
+# Clean Brazil Data
+BRA_pa_data <- wdpa_clean(BRA_raw_pa_data)
+
+
+
 
 
 ```
 
 
 
-Read in Bio-Oracle
+
+
+Artisanal Fishing Areas, WWF
+```{r}
+
+# Download File
+artisanal_areas <- read_sf(dsn = path,
+                layer = "Artisanal_fishing_Areas")
+
+
+# View Plots
+plot(artisanal_areas)
+
+
+# View CRS
+st_crs(artisanal_areas)
+
+
+# Reproject to EEZ
+artisanal_rpj <- st_transform(artisanal_areas, CRS("+init=epsg:4326"))
+
+# Crop to Brazil EEZ 
+artisanal_BR <- crop(artisanal_rpj, eez_BRA)
+
+# Mask to Brazil EEZ
+depth_BRA <- mask(depth_BR, eez_BRA)
+
+# Resample to Bio-Oracle Cell Size (ATM Bio-Oracle Cell Size is the Standard)
+depth_BRA_res <- resample(depth_BRA, min_sst_BRA,method='ngb',progress='text')
+
+# View Cropped Plot
+plot(depth_BRA_res)
+
+```
+
+
+# Distance from Shore Mask
+```{r}
+
+# Set Max Distance
+max_shore_distance <- 25
+
+# Create a Raster
+shore_raster <- ne_countries(scale = "110", country = "Brazil", returnclass = "sf") %>% 
+  sf::st_crop(eez_BRA)
+
+shore_distance
+
+shore_distance_mask <- shore_distance > max_shore_distance
+
+```
+
+To Read in Bio-Oracle
 ```{r}
 #Explore Datasets and Layer Names in the Package 
 ##Explore Datasets
@@ -253,7 +323,7 @@ list_layers()
 
 
 
-CRS
+To find CRS
 ```{r}
 proj4string(eez)
 class(eez)
