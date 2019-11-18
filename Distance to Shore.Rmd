@@ -23,7 +23,7 @@ bound_BRA <- ne_countries(scale = 110, country = "Brazil", returnclass = "sf")%>
   sf::st_crop(eez_BRA)
 
 # Plot Boundaries
-plot(bound_BRA)
+#plot(bound_BRA)
 
 # Set the Extent to Brazil EEZ
 extent <-extent(eez_BRA)
@@ -35,20 +35,20 @@ res = res(min_sst_BRA)
 blank_raster <- raster( extent, resolution = res)
 
 # Rasterize the Coastline
-rasterized_coast <- rasterize(bound_BRA, blank_raster, 43601)
+rasterized_coast <- rasterize(bound_BRA, blank_raster, 1)
 
 # Plot Rasterized Coast
-plot(rasterized_coast)
+#plot(rasterized_coast)
 
 # Calculate the Distance to the Nearest Non-NA Pixel
 distance_nonNA <- distance(rasterized_coast)
 beep()
 
 # Export the Raster as .tif
-writeRaster(x = distance_nonNA, filename = paste0(path,"/distance_to_shore2.tif"), overwrite = F)
+writeRaster(x = distance_nonNA, filename = paste0(path,"/distance_to_shore4.tif"), overwrite = F)
 
 # Plot Distance Raster
-plot(distance_nonNA)
+#plot(distance_nonNA)
 ```
 
 Create a Land Value NA Mask and Raster
