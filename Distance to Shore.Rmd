@@ -8,12 +8,15 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+
+
 ```{r}
 # Load packages
 library(rnaturalearth)
 library(beepr)
 ```
 
+Create a Raster for Distance to Shore
 ```{r}
 # Import Brazil Data from the "rnaturalearth" Package
 bound_BRA <- ne_countries(scale = 110, country = "Brazil", returnclass = "sf")%>% 
@@ -42,6 +45,18 @@ distance_nonNA <- distance(rasterized_coast)
 beep()
 
 # Export the Raster as .tif
-writeRaster(x = distance_nonNA, filename = paste0(path,"/dist_shore.tif"), overwrite = F)
-plot(d)
-# Make land NAs
+writeRaster(x = distance_nonNA, filename = paste0(path,"/distance_to_shore.tif"), overwrite = F)
+
+# Plot Distance Raster
+plot(distance_nonNA)
+```
+
+Create a Land Value NA Mask and Raster
+```{r}
+
+# Create a Mask to Set Land Pixels to NA
+dist_mask <- mask(is.na(rasterized_coast), rasterized_coast, maskvalue = 1, updatevalue = NA)
+
+# Set Non-Land Pixels to NA (That way it is distance to land, not distance to non-land) 
+
+```

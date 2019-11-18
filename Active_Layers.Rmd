@@ -205,29 +205,23 @@ mpas_BR <- mpas %>%
   filter(ISO3 == "BRA")
 
 # Plot MPAs
-ggplot( data = mpas_BR) +
-  geom_sf()
+plot(mpas_BR$geometry)
 
 
 # View CRS
-st_crs(mpas)
+st_crs(mpas_BR)
 
 
-# Crop to Brazil EEZ
-current_BR <- crop(mpas, eez_BRA)
+# Already Should be Cropped to Brazil EEZ
+#mpas_BRA <- st_crop(mpas_BR, eez_BRA)
 
 
-# Reproject CRS
-mpas_rpj <- st_transform(mpas, CRS("+init=epsg:5880"))
-
-
-# Crop to Brazil - necessary?
-#mpas_BRA <- crop(mpas_rpj, eez_BRA)
+# No Need to Reproject -> In Same CRS as EEZ
 
 
 # Resample to Bio-Oracle Cell Size (ATM Bio-Oracle Cell Size is the Standard)
 # Will not work because min_sst_BRA needs to be reprojected
-mpas_BRA_res <- resample(mpas_rpj, min_sst_BRA,method='ngb',progress='text')
+mpas_BRA_res <- resample(mpas_BR, min_sst_BRA, method='ngb',progress='text')
 
 
 # Plot Brazil EEZ
@@ -258,9 +252,19 @@ BRA_pa_data <- wdpa_clean(BRA_raw_pa_data)
 
 
 
+No-Take Zones
+```{r}
 
 
-Artisanal Fishing Areas, WWF
+
+
+```
+
+
+
+
+
+Artisanal Fishing Areas, WWF - Needs More Info
 ```{r}
 
 # Download File
@@ -294,19 +298,28 @@ plot(depth_BRA_res)
 ```
 
 
-# Distance from Shore Mask
+# Distance from Shore 
 ```{r}
 
-# Set Max Distance
+# Read in Created .tif File from Distance to Shore.Rmd
+dist_to_shore <- raster(paste0(path,"/distance_to_shore.tif"))
+
+
+# View Distance Mask
+plot(dist_to_shore)
+# NOTE: This mask is distance to NON-LAND, since the land values are the NA. If we want to do distance to LAND, we would have to reverse the mask. It should really matter though, as long as numerically it is 25
+
+
+# Set Maximum Shore Distance
 max_shore_distance <- 25
 
-# Create a Raster
-shore_raster <- ne_countries(scale = "110", country = "Brazil", returnclass = "sf") %>% 
-  sf::st_crop(eez_BRA)
+
 
 shore_distance
 
-shore_distance_mask <- shore_distance > max_shore_distance
+shore_distance_mask <- dist_to_shore < max_shore_distance
+
+plot(shore_distance_mask)
 
 ```
 
