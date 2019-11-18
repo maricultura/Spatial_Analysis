@@ -35,7 +35,7 @@ res = res(min_sst_BRA)
 blank_raster <- raster( extent, resolution = res)
 
 # Rasterize the Coastline
-rasterized_coast <- rasterize(bound_BRA, blank_raster, 1)
+rasterized_coast <- rasterize(bound_BRA, blank_raster, 43601)
 
 # Plot Rasterized Coast
 plot(rasterized_coast)
@@ -45,7 +45,7 @@ distance_nonNA <- distance(rasterized_coast)
 beep()
 
 # Export the Raster as .tif
-writeRaster(x = distance_nonNA, filename = paste0(path,"/distance_to_shore.tif"), overwrite = F)
+writeRaster(x = distance_nonNA, filename = paste0(path,"/distance_to_shore2.tif"), overwrite = F)
 
 # Plot Distance Raster
 plot(distance_nonNA)
@@ -57,6 +57,11 @@ Create a Land Value NA Mask and Raster
 # Create a Mask to Set Land Pixels to NA
 dist_mask <- mask(is.na(rasterized_coast), rasterized_coast, maskvalue = 1, updatevalue = NA)
 
-# Set Non-Land Pixels to NA (That way it is distance to land, not distance to non-land) 
+# Plot Mask
+plot(dist_mask)
 
+# Set Non-Land Pixels to NA (That way it is distance to land, not distance to non-land) ?
+#dist_mask_reverse <- (((distance_nonNA*dist_mask)/1000)/1.854)
+
+writeRaster(x = dist_mask, filename = paste0(path,"/distance_mask.tif"), overwrite = F)
 ```

@@ -302,7 +302,7 @@ plot(depth_BRA_res)
 ```{r}
 
 # Read in Created .tif File from Distance to Shore.Rmd
-dist_to_shore <- raster(paste0(path,"/distance_to_shore.tif"))
+dist_to_shore <- raster(paste0(path,"/distance_to_shore2.tif"))
 
 
 # View Distance Mask
@@ -311,13 +311,9 @@ plot(dist_to_shore)
 
 
 # Set Maximum Shore Distance
-max_shore_distance <- 25
+max_shore_distance <- 46300
 
-
-
-shore_distance
-
-shore_distance_mask <- dist_to_shore < max_shore_distance
+shore_distance_mask <- dist_to_shore < 46300
 
 plot(shore_distance_mask)
 
