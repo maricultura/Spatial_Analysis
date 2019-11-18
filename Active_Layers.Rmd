@@ -302,8 +302,19 @@ plot(depth_BRA_res)
 ```{r}
 
 # Read in Created .tif File from Distance to Shore.Rmd
-dist_to_shore <- raster(paste0(path,"/distance_to_shore2.tif"))
+dist_to_shore <- raster(paste0(path,"/distance_to_shore4.tif"))
 
+# Reclassify Matrix for Distance to Shore
+rcl_matrix_dist_shore <- c(-Inf, 0, 0,
+                           0, 46300, 1,
+                           46300, Inf, 0)
+
+# Reclassify Distance to Shore Layer
+dist_shore_binary <- reclassify(distance_nonNA, rcl = rcl_matrix_dist_shore)
+
+
+#Plot Reclassified Layers
+plot(dist_shore_binary)
 
 # View Distance Mask
 plot(dist_to_shore)
