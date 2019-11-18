@@ -221,8 +221,14 @@ st_crs(mpas_BR)
 
 # Resample to Bio-Oracle Cell Size (ATM Bio-Oracle Cell Size is the Standard)
 # Will not work because min_sst_BRA needs to be reprojected
-mpas_BRA_res <- resample(mpas_BR, min_sst_BRA, method='ngb',progress='text')
 
+extent <- extent(eez_BRA)
+res = res(min_sst_BRA)
+
+empty_raster <- raster( extent, resolution = res)
+r_mpas <- rasterize(mpas_BR, empty_raster, field = 0, background = 1) # name: include binary
+plot(r_mpas)
+freq(r_mpas)
 
 # Plot Brazil EEZ
 #plot(mpas_rpj)
@@ -302,7 +308,7 @@ plot(depth_BRA_res)
 ```{r}
 
 # Read in Created .tif File from Distance to Shore.Rmd
-dist_to_shore <- raster(paste0(path,"/distance_to_shore4.tif"))
+dist_to_shore <- raster(paste0(path,"/distance_to_shore_coastline.tif"))
 
 # Reclassify Matrix for Distance to Shore
 rcl_matrix_dist_shore <- c(-Inf, 0, 0,
