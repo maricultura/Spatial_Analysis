@@ -321,7 +321,7 @@ plot(dist_to_shore)
 # NOTE: This mask is distance to NON-LAND, since the land values are the NA. If we want to do distance to LAND, we would have to reverse the mask. It should really matter though, as long as numerically it is 25
 
 
-# Set Maximum Shore Distance
+# Set Maximum Shore Distance - JC's code
 max_shore_distance <- 46300
 
 shore_distance_mask <- dist_to_shore < 46300
