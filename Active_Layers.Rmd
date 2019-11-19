@@ -87,14 +87,12 @@ plot(min_sst)
 plot(max_sst)
 
 # View CRS
- st_crs(min_sst)
- st_crs(max_sst)
-
+st_crs(min_sst)
+st_crs(max_sst)
 
 # Crop to Brazil EEZ
 max_sst_BR <- crop(max_sst, eez_BRA)
 min_sst_BR <- crop(min_sst, eez_BRA)
-
 
 # No Need to Reproject -> In Same CRS as EEZ
 
@@ -315,6 +313,7 @@ plot(shore_distance_mask)
 
 To Read in Bio-Oracle
 ```{r}
+# Move this to right place
 #Explore Datasets and Layer Names in the Package 
 ##Explore Datasets
 list_datasets() 
@@ -324,21 +323,12 @@ list_layers()
 
 ```
 
-
-
-To find CRS
+CRS
 ```{r}
-proj4string(eez)
-class(eez)
-
-CRS("+init=epsg:5880")
-#CRS arguments:
-# +init=epsg:5880 +proj=poly +lat_0=0 +lon_0=-54 +x_0=5000000 +y_0=10000000
-#+ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs 
-
-eez_BRA <- eez %>% 
-  filter(ISO_Ter1 == "BRA")
+# Use st_transform(layer, 5880)
+# IT WORKS!!!!!!!!
 ```
+
 
 
 
