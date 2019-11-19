@@ -59,7 +59,7 @@ Exclusive Economic Zone, EEZ, marineregions.org
 eez <- read_sf(dsn = path,
                 layer = "eez_v10")
 
-# Crop to Brazil
+# Filtered to select only Brazil's EEZ
 eez_BRA <- eez %>% 
   filter(ISO_Ter1 == "BRA")
 
@@ -223,12 +223,12 @@ st_crs(mpas_BR)
 # Will not work because min_sst_BRA needs to be reprojected
 
 extent <- extent(eez_BRA)
-res = res(min_sst_BRA)
+res <-  res(min_sst_BRA)
 
 empty_raster <- raster( extent, resolution = res)
-r_mpas <- rasterize(mpas_BR, empty_raster, field = 0, background = 1) # name: include binary
-plot(r_mpas)
-freq(r_mpas)
+mpas_binary <- rasterize(mpas_BR, empty_raster, field = 0, background = 1)
+plot(mpas_binary)
+freq(mpas_binary)
 
 # Plot Brazil EEZ
 #plot(mpas_rpj)
