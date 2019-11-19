@@ -31,6 +31,7 @@ library(rnaturalearth)
 library(wdpar)
 library(dplyr)
 library(ggmap)
+library(SDMTools)
 
 ```
 
@@ -223,6 +224,16 @@ st_crs(mpas_BR)
 ```
 
 ---------Messy Beyond This Point-----------------
+
+
+Wave Height
+```{r}
+
+# Download File
+waves <- raster("G:/Shared drives/Bren GP 2020 maricultura/Data/Raw_Data/Active_Data_Layers/aq_waveheight", gz = FALSE)
+```
+
+
 
 No-Take Zones
 ```{r}
