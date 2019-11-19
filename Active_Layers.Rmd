@@ -191,8 +191,6 @@ plot(current_BRA)
 ```
 
 
----------Messy Beyond This Point-----------------
-
 Marine Protected Areas (MPAs) - WWF
 ```{r}
 # Download File
@@ -219,44 +217,12 @@ st_crs(mpas_BR)
 # No Need to Reproject -> In Same CRS as EEZ
 
 
-# Resample to Bio-Oracle Cell Size (ATM Bio-Oracle Cell Size is the Standard)
-# Will not work because min_sst_BRA needs to be reprojected
-
-extent <- extent(eez_BRA)
-res <-  res(min_sst_BRA)
-
-empty_raster <- raster( extent, resolution = res)
-mpas_binary <- rasterize(mpas_BR, empty_raster, field = 0, background = 1)
-plot(mpas_binary)
-freq(mpas_binary)
-
-# Plot Brazil EEZ
-#plot(mpas_rpj)
-#Not sure if read in correctly, only 5 files in zip whereas other files zips have 8
-
-
-#There is a distance function in raster- you feed a raster that has both values and NAs nd it returns raster that calculates distance to nearest non NA cell
-#distance to shore
-
-# set max_land_distance <- 25
-
-#land_distance_mask <- land_distance < max_land_distance
-
-# Download Protected Area Data for Brazil (Excludes Areas Represented as Point Localities)
-BRA_raw_pa_data <- wdpa_fetch("Brazil")
-
-# Clean the Data. Steps Include: excluding protected areas that are not yet implemented, excluding protected areas with limited conservation value, replacing missing data codes (e.g. "0") with missing data values (i.e. NA), replacing protected areas represented as points with circular protected areas that correspond to their reported extent, repairing any topological issues with the geometries, and erasing overlapping areas. 
-
-# Clean Brazil Data
-BRA_pa_data <- wdpa_clean(BRA_raw_pa_data)
-
-
-
+# Do Not Need to Resample because MPAs is a Polygon
 
 
 ```
 
-
+---------Messy Beyond This Point-----------------
 
 No-Take Zones
 ```{r}
@@ -270,7 +236,7 @@ No-Take Zones
 
 
 
-Artisanal Fishing Areas, WWF - Needs More Info
+Artisanal Fishing Areas, WWF - Needs More Info - Maybe Better to Leave for Discussion
 ```{r}
 
 # Download File
@@ -279,7 +245,7 @@ artisanal_areas <- read_sf(dsn = path,
 
 
 # View Plots
-plot(artisanal_areas)
+plot(artisanal_areas$geometry)
 
 
 # View CRS

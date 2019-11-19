@@ -1,0 +1,41 @@
+---
+title: "Fixed_Barriers_Suitability"
+author: "Eva Marrero and Caio"
+date: "November 19, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+MPAs
+```{r}
+# Set the Resolution and Extent for Empty Raster
+extent <- extent(eez_BRA)
+res <-  res(min_sst_BRA)
+
+# Create an Empty Raster 
+empty_raster <- raster( extent, resolution = res)
+
+# Create a Binary MPA Rasters
+mpas_binary <- rasterize(mpas_BR, empty_raster, field = 0, background = 1)
+
+# Plot Reclassified MPA Layer
+plot(mpas_binary)
+freq(mpas_binary)
+
+```
+
+Suitable areas
+```{r}
+# Overlay all layers
+# Note: they all need to have the same extent and resolution
+suitable <- overlay(sst_binary_min, sst_binary_max, depth_binary,current_binary,  fun = function(w,x,y,z){w+x+y+\z})
+
+# Plot suitable areas
+plot(suitable)
+map('world', fill = T, add = T, col = 'gray')
+
+```
+
