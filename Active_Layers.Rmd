@@ -28,11 +28,10 @@ library(maps)
 library(ncdf4)
 library(marmap)
 library(rnaturalearth)
-library(wdpar)
 library(dplyr)
 library(ggmap)
 library(SDMTools)
-
+library(rmapshaper)
 ```
 
 
@@ -53,6 +52,14 @@ path <- paste0(team_path, "Shared drives/Bren GP 2020 maricultura/Data/Raw_Data/
 
 Read in Downloaded Data Layers from the Shared Drive: Bren GP 2020 maricultura/Data/Raw_Data/Active_Layers
 
+Naming our Projection
+```{r}
+# Define CRS
+
+crs_BRA <- "+proj=poly +lat_0=0 +lon_0=-54 +x_0=5000000 +y_0=10000000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
+
+```
+
 Exclusive Economic Zone, EEZ, marineregions.org
 ```{r}
 
@@ -64,11 +71,25 @@ eez <- read_sf(dsn = path,
 eez_BRA <- eez %>% 
   filter(ISO_Ter1 == "BRA")
 
+# Reproject EEZ
+eez_BRA <- st_transform(eez_BRA, crs_BRA)
+
 # Plot Brazil EEZ
 plot(eez_BRA$geometry)
 
 # View CRS
 st_crs(eez_BRA)
+
+
+```
+
+To Read in Bio-Oracle
+```{r}
+# Explore Datasets and Layer Names in the Package 
+#list_datasets() 
+
+# Explore Layers
+#list_layers() 
 
 ```
 
@@ -79,16 +100,22 @@ min_sst <- load_layers("BO_sstmin")
 max_sst <- load_layers("BO_sstmax")
 
 # View Histograms
-hist(min_sst)
-hist(max_sst)
+#hist(min_sst)
+#hist(max_sst)
 
 # View Plots
-plot(min_sst)
-plot(max_sst)
+#plot(min_sst)
+#plot(max_sst)
+
+
+# Reproject Temps to 5880
+min_sst_proj <-  projectRaster(min_sst, crs = crs_BRA)
+
+max_sst_proj <-  projectRaster(max_sst, crs = crs_BRA)
 
 # View CRS
-st_crs(min_sst)
-st_crs(max_sst)
+st_crs(min_sst_proj)
+st_crs(max_sst_proj)
 
 # Crop to Brazil EEZ
 max_sst_BR <- crop(max_sst, eez_BRA)
@@ -228,7 +255,8 @@ Wave Height
 ```{r}
 
 # Download File
-waves <- raster("G:/Shared drives/Bren GP 2020 maricultura/Data/Raw_Data/Active_Data_Layers/aq_waveheight", gz = FALSE)
+waves <- raster("G:/Shared drives/Bren GP 2020 maricultura/Data/Raw_Data/Active_Data_Layers/aq_waveheight.asc")
+plot(waves)
 ```
 
 
@@ -311,22 +339,12 @@ plot(shore_distance_mask)
 
 ```
 
-To Read in Bio-Oracle
-```{r}
-# Move this to right place
-#Explore Datasets and Layer Names in the Package 
-##Explore Datasets
-list_datasets() 
-
-##Explore Layers
-list_layers() 
-
-```
 
 CRS
 ```{r}
 # Use st_transform(layer, 5880)
 # IT WORKS!!!!!!!!
+st_transform(eez_BRA, 5880)
 ```
 
 
