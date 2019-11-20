@@ -25,6 +25,32 @@ mpas_binary <- rasterize(mpas_BR, empty_raster, field = 0, background = 1)
 plot(mpas_binary)
 freq(mpas_binary)
 
+# Artificial reefs
+
+extent <- extent(eez_BRA)
+res <-  res(min_sst_BRA)
+
+# Create an Empty Raster 
+empty_raster <- raster(extent, resolution = res, crs = "+proj=longlat +datum=WGS84 +no_defs")
+
+
+# Create a Binary Reefs Rasters
+reefs_binary <- rasterize(reefs_artificial, empty_raster, field = 0, background = 1)
+plot(reefs_binary)
+
+# Get rid of Z dimension
+reefs_artificial <- st_zm(marine_ecosystems, drop = TRUE, what = "ZM") %>% 
+  st_transform("+proj=longlat +datum=WGS84 +no_defs")
+
+# Plot Reclassified Reefs Layer
+marine_ecosystems <- st_read(dsn = path, layer = "apzcm_alvo_ecossistemas_marinhos") %>% 
+  ms_simplify(keep_shapes = TRUE)
+
+plot(reefs_binary)
+plot(reefs_artificial, max.plot = 1)
+
+freq(mpas_binary)
+
 ```
 
 Suitable areas
