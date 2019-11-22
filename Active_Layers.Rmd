@@ -30,7 +30,8 @@ library(marmap)
 library(rnaturalearth)
 library(dplyr)
 library(ggmap)
-library(rmapshaper)
+#library(rmapshaper)
+
 ```
 
 
@@ -62,6 +63,7 @@ crs_BRA <- "+proj=poly +lat_0=0 +lon_0=-54 +x_0=5000000 +y_0=10000000 +ellps=GRS
 Exclusive Economic Zone, EEZ, marineregions.org
 ```{r}
 
+
 # Read File
 eez <- read_sf(dsn = path,
                 layer = "eez_v10")
@@ -83,15 +85,6 @@ st_crs(eez_BRA)
 ```
 
 To Read in Bio-Oracle
-```{r}
-# Explore Datasets and Layer Names in the Package 
-#list_datasets() 
-
-# Explore Layers
-#list_layers() 
-
-```
-
 Minimum and Maximum Sea-Surface Temperatures (SST), bio-oracle.org
 ```{r}
 # Download Files
@@ -107,9 +100,8 @@ max_sst <- load_layers("BO_sstmax")
 #plot(max_sst)
 
 
-# Reproject Temps to 5880
+# Reproject Temps to 5880 (Brazil's CRS)
 min_sst_proj <-  projectRaster(min_sst, crs = crs_BRA)
-
 max_sst_proj <-  projectRaster(max_sst, crs = crs_BRA)
 
 # View CRS
@@ -141,7 +133,7 @@ plot(min_sst_BRA)
 
 Depth, gebco.net
 ```{r}
-# Read file
+# Read in depth file
 depth <- raster(paste0(path,"/gebco_2019_n7.045066_s-35.78779_w-54.58321_e-26.01452.tif"))
 
 
@@ -218,31 +210,64 @@ plot(current_BRA)
 
 Marine Protected Areas (MPAs) - WWF
 ```{r}
+
+# Create an Empty Raster 
+empty_raster <- raster( extent, resolution = res)
+
 # Download File
 mpas <- read_sf(dsn = path,
                 layer = "WDPA_Mar2018_marine-shapefile-polygons")
 
 
 # Filter MPAs for Brazil
-mpas_BR <- mpas %>% 
+mpas_BRA <- mpas %>% 
   filter(ISO3 == "BRA")
 
 # Plot MPAs
-plot(mpas_BR$geometry)
-
+# plot(mpas_BR$geometry)
 
 # View CRS
-st_crs(mpas_BR)
+# st_crs(mpas_BR)
 
 
-# Already Should be Cropped to Brazil EEZ
-#mpas_BRA <- st_crop(mpas_BR, eez_BRA)
+# Reproject MPAs
+mpas_proj <- st_transform(mpas_BRA, crs = crs_BRA)
 
-
-# No Need to Reproject -> In Same CRS as EEZ
-
+# No Need to Crop to Brazil EEZ
 
 # Do Not Need to Resample because MPAs is a Polygon
+
+# Rasterizing Steps for MPA Layer
+# Create a Binary MPA Raster
+mpas_binary <- rasterize(mpas_proj, empty_raster, field = 0, background = 1)
+
+# Plot Reclassified MPA Layer
+plot(mpas_binary)
+freq(mpas_binary)
+
+```
+
+Reefs
+```{r}
+
+# Reefs: Setting Extent and Resolution
+extent <- extent(eez_BRA)
+res <-  res(min_sst_BRA)
+
+# Create an Empty Raster 
+empty_raster <- raster(extent, resolution = res, crs = crs_BRA)
+
+# Read in, Reproject, and Simplify Reefs Layer and Remove Z Dimension
+marine_ecosystems <- st_read(dsn = path, layer = "apzcm_alvo_ecossistemas_marinhos") %>% 
+  st_transform(crs_BRA) %>% 
+  ms_simplify(keep_shapes = TRUE) %>% 
+  st_zm(drop = TRUE, what = "ZM")
+
+# Create a Binary Reefs Rasters
+reefs_binary <- rasterize(marine_ecosystems, empty_raster, field = 0, background = 1)
+
+# View Plots
+plot(reefs_binary)
 
 
 ```
