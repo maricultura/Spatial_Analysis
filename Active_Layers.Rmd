@@ -30,7 +30,6 @@ library(marmap)
 library(rnaturalearth)
 library(dplyr)
 library(ggmap)
-library(SDMTools)
 library(rmapshaper)
 ```
 
@@ -118,8 +117,8 @@ st_crs(min_sst_proj)
 st_crs(max_sst_proj)
 
 # Crop to Brazil EEZ
-max_sst_BR <- crop(max_sst, eez_BRA)
-min_sst_BR <- crop(min_sst, eez_BRA)
+max_sst_BR <- crop(max_sst_proj, eez_BRA)
+min_sst_BR <- crop(min_sst_proj, eez_BRA)
 
 # No Need to Reproject -> In Same CRS as EEZ
 
