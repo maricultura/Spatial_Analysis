@@ -1,6 +1,5 @@
 ---
-title: "Data_Layers"
-author: "Sandra Fogg"
+title: "Active Layers"
 date: "11/5/2019"
 output: html_document
 ---
@@ -24,6 +23,7 @@ library(fasterize)
 library(dismo)
 library(maptools)
 library(sdmpredictors)
+library(leaflet)
 library(maps)
 library(ncdf4)
 library(marmap)
@@ -121,49 +121,57 @@ min_sst_BRA <- mask(min_sst_BR, eez_BRA)
 
 
 # View Cropped Histograms
-hist(max_sst_BRA)
-hist(min_sst_BRA)
+#hist(max_sst_BRA)
+#hist(min_sst_BRA)
 
 
 # View Cropped Plots
-plot(max_sst_BRA)
-plot(min_sst_BRA)
+#plot(max_sst_BRA)
+#plot(min_sst_BRA)
 
 ```
 
 Depth, gebco.net
 ```{r}
-# Read in depth file
 depth <- raster(paste0(path,"/gebco_2019_n7.045066_s-35.78779_w-54.58321_e-26.01452.tif"))
 
 
 # View Histograms
-hist(depth)
+#hist(depth)
 
 
 # View Plots
-plot(depth)
+#plot(depth)
 
 
 # View CRS
-st_crs(depth)
+#st_crs(depth)
 
 
 # No Need to Reproject -> In Same CRS as EEZ
-
-
-# Crop to Brazil EEZ 
-depth_BR <- crop(depth, eez_BRA)
-
-# Mask to Brazil EEZ
-depth_BRA <- mask(depth_BR, eez_BRA)
+depth_proj <- projectRaster(depth, crs = crs_BRA)
 
 # Resample to Bio-Oracle Cell Size (ATM Bio-Oracle Cell Size is the Standard)
-depth_BRA_res <- resample(depth_BRA, min_sst_BRA,method='ngb',progress='text')
+depth_resample <- resample(depth_proj, min_sst_crop,method='ngb',progress='text')
 
-# View Cropped Plot
-plot(depth_BRA_res)
+# Crop to Brazil EEZ 
+depth_crop <- crop(depth_resample, eez_BRA)
 
+# Mask to Brazil EEZ
+depth_mask <- mask(depth_crop, eez_BRA)
+
+
+# Reclassification matrix for depth layer
+rcl_mat_depth <- c(-Inf, -100, 0,
+                   -100, -25, 1,
+                   -25, Inf, 0)
+
+# Reclassify the depth layer
+depth_binary <- reclassify(depth_mask,rcl= rcl_mat_depth)
+
+
+# Plot reclassified layer
+plot(depth_binary)
 ```
 
 
