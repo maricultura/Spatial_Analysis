@@ -55,14 +55,12 @@ Read in Downloaded Data Layers from the Shared Drive: Bren GP 2020 maricultura/D
 Naming our Projection
 ```{r}
 # Define CRS
-
 crs_BRA <- "+proj=poly +lat_0=0 +lon_0=-54 +x_0=5000000 +y_0=10000000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
 
 ```
 
 Exclusive Economic Zone, EEZ, marineregions.org
 ```{r}
-
 
 # Read File
 eez <- read_sf(dsn = path,
@@ -76,10 +74,10 @@ eez_BRA <- eez %>%
 eez_BRA <- st_transform(eez_BRA, crs_BRA)
 
 # Plot Brazil EEZ
-plot(eez_BRA$geometry)
+#plot(eez_BRA$geometry)
 
 # View CRS
-st_crs(eez_BRA)
+#st_crs(eez_BRA)
 
 
 ```
@@ -87,6 +85,7 @@ st_crs(eez_BRA)
 To Read in Bio-Oracle
 Minimum and Maximum Sea-Surface Temperatures (SST), bio-oracle.org
 ```{r}
+
 # Download Files
 min_sst <- load_layers("BO_sstmin")
 max_sst <- load_layers("BO_sstmax")
@@ -99,8 +98,7 @@ max_sst <- load_layers("BO_sstmax")
 #plot(min_sst)
 #plot(max_sst)
 
-
-# Reproject Temps to 5880 (Brazil's CRS)
+# Reproject to 5880 (Brazil's CRS)
 min_sst_proj <-  projectRaster(min_sst, crs = crs_BRA)
 max_sst_proj <-  projectRaster(max_sst, crs = crs_BRA)
 
@@ -109,46 +107,56 @@ st_crs(min_sst_proj)
 st_crs(max_sst_proj)
 
 # Crop to Brazil EEZ
-max_sst_BR <- crop(max_sst_proj, eez_BRA)
-min_sst_BR <- crop(min_sst_proj, eez_BRA)
-
-# No Need to Reproject -> In Same CRS as EEZ
-
+max_sst_crop <- crop(max_sst_proj, eez_BRA)
+min_sst_crop <- crop(min_sst_proj, eez_BRA)
 
 # Mask to Brazil EEZ
-max_sst_BRA <- mask(max_sst_BR, eez_BRA)
-min_sst_BRA <- mask(min_sst_BR, eez_BRA)
-
+max_sst_mask <- mask(max_sst_crop, eez_BRA)
+min_sst_mask <- mask(min_sst_crop, eez_BRA)
 
 # View Cropped Histograms
 #hist(max_sst_BRA)
 #hist(min_sst_BRA)
 
-
 # View Cropped Plots
 #plot(max_sst_BRA)
 #plot(min_sst_BRA)
 
+# Write a Raster for Suitability Analysis
+
+writeRaster(max_sst_mask, paste0(path, "/max_sst_mask"))
+
 ```
+
+
+Create an Empty Raster Using EEZ Extent and Bio-Oracle Cell Size
+```{r}
+# Set the Resolution and Extent for Empty Raster
+extent <- extent(eez_BRA)
+res <-  res(min_sst_mask)
+
+# Create an Empty Raster 
+empty_raster <- raster( extent, resolution = res)
+
+```
+
 
 Depth, gebco.net
 ```{r}
-depth <- raster(paste0(path,"/gebco_2019_n7.045066_s-35.78779_w-54.58321_e-26.01452.tif"))
 
+# Read File
+depth <- raster(paste0(path,"/gebco_2019_n7.045066_s-35.78779_w-54.58321_e-26.01452.tif"))
 
 # View Histograms
 #hist(depth)
 
-
 # View Plots
 #plot(depth)
-
 
 # View CRS
 #st_crs(depth)
 
-
-# No Need to Reproject -> In Same CRS as EEZ
+# Reproject to 5880 (Brazil's CRS)
 depth_proj <- projectRaster(depth, crs = crs_BRA)
 
 # Resample to Bio-Oracle Cell Size (ATM Bio-Oracle Cell Size is the Standard)
@@ -160,67 +168,55 @@ depth_crop <- crop(depth_resample, eez_BRA)
 # Mask to Brazil EEZ
 depth_mask <- mask(depth_crop, eez_BRA)
 
-
-# Reclassification matrix for depth layer
+# Set Reclassification Matrix for Depth
 rcl_mat_depth <- c(-Inf, -100, 0,
                    -100, -25, 1,
                    -25, Inf, 0)
 
-# Reclassify the depth layer
+# Reclassify Depth 
 depth_binary <- reclassify(depth_mask,rcl= rcl_mat_depth)
 
-
-# Plot reclassified layer
+# Plot Reclassified Depth
 plot(depth_binary)
+
 ```
 
 
 Current Velocity, (Maximum Velocity at Minimum Depth), bio-oracle.org
 ```{r}
+
 # Download File 
 max_cv <- load_layers("BO2_curvelmax_bdmin")
 
-
 # View Histograms
-hist(max_cv)
-
+#hist(max_cv)
 
 # View Plots
-plot(max_cv)
-
+#plot(max_cv)
 
 # View CRS
-st_crs(max_cv)
+#st_crs(max_cv)
 
+# Reproject to 5880 (Brazil's CRS)
+max_cv_proj <-  projectRaster(max_cv, crs = crs_BRA)
 
 # Crop to Brazil EEZ
-current_BR <- crop(max_cv, eez_BRA)
-
-
-# No Need to Reproject -> In Same CRS as EEZ
-
+max_cv_crop <- crop(max_cv_proj, eez_BRA)
 
 # Mask to Brazil EEZ
-current_BRA <- mask(current_BR, eez_BRA)
-
+max_cv_mask <- mask(max_cv_crop, eez_BRA)
 
 # View Cropped Histogram
-hist(current_BRA)
-
+#hist(max_cv_mask)
 
 # View Cropped Plot
-plot(current_BRA)
-
-
+#plot(max_cv_mask)
 
 ```
 
 
 Marine Protected Areas (MPAs) - WWF
 ```{r}
-
-# Create an Empty Raster 
-empty_raster <- raster( extent, resolution = res)
 
 # Download File
 mpas <- read_sf(dsn = path,
@@ -232,16 +228,15 @@ mpas_BRA <- mpas %>%
   filter(ISO3 == "BRA")
 
 # Plot MPAs
-# plot(mpas_BR$geometry)
+#plot(mpas_BR$geometry)
 
 # View CRS
-# st_crs(mpas_BR)
+#st_crs(mpas_BR)
 
-
-# Reproject MPAs
+# Reproject to 5880 (Brazil's CRS)
 mpas_proj <- st_transform(mpas_BRA, crs = crs_BRA)
 
-# No Need to Crop to Brazil EEZ
+# No Need to Crop to Brazil EEZ because Already Filtered for Brazil and Extent is set to EEZ
 
 # Do Not Need to Resample because MPAs is a Polygon
 
@@ -250,20 +245,14 @@ mpas_proj <- st_transform(mpas_BRA, crs = crs_BRA)
 mpas_binary <- rasterize(mpas_proj, empty_raster, field = 0, background = 1)
 
 # Plot Reclassified MPA Layer
-plot(mpas_binary)
-freq(mpas_binary)
+#plot(mpas_binary)
+#freq(mpas_binary)
 
 ```
 
 Reefs
 ```{r}
 
-# Reefs: Setting Extent and Resolution
-extent <- extent(eez_BRA)
-res <-  res(min_sst_BRA)
-
-# Create an Empty Raster 
-empty_raster <- raster(extent, resolution = res, crs = crs_BRA)
 
 # Read in, Reproject, and Simplify Reefs Layer and Remove Z Dimension
 marine_ecosystems <- st_read(dsn = path, layer = "apzcm_alvo_ecossistemas_marinhos") %>% 
@@ -378,6 +367,9 @@ CRS
 # IT WORKS!!!!!!!!
 st_transform(eez_BRA, 5880)
 ```
+
+
+
 
 
 
