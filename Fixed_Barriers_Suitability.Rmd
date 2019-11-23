@@ -9,50 +9,7 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-MPAs
-```{r}
-# Set the Resolution and Extent for Empty Raster
-extent <- extent(eez_BRA)
-res <-  res(min_sst_BRA)
 
-# Create an Empty Raster 
-empty_raster <- raster( extent, resolution = res)
-
-# Create a Binary MPA Rasters
-mpas_binary <- rasterize(mpas_BR, empty_raster, field = 0, background = 1)
-
-# Plot Reclassified MPA Layer
-plot(mpas_binary)
-freq(mpas_binary)
-
-
-```
-
-Reefs
-```{r}
-
-# Reefs: Setting Extent and Resolution
-
-extent <- extent(eez_BRA)
-res <-  res(min_sst_BRA)
-
-# Create an Empty Raster 
-empty_raster <- raster(extent, resolution = res, crs = crs_BRA)
-
-# Read in, Reproject, and Simplify Reefs Layer and Remove Z Dimension
-marine_ecosystems <- st_read(dsn = path, layer = "apzcm_alvo_ecossistemas_marinhos") %>% 
-  st_transform(crs_BRA) %>% 
-  ms_simplify(keep_shapes = TRUE) %>% 
-  st_zm(drop = TRUE, what = "ZM")
-
-# Create a Binary Reefs Rasters
-reefs_binary <- rasterize(marine_ecosystems, empty_raster, field = 0, background = 1)
-
-# View Plots
-plot(reefs_binary)
-
-
-```
 
 Suitable areas
 ```{r}
