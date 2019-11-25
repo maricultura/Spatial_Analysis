@@ -124,20 +124,22 @@ min_sst_mask <- mask(min_sst_crop, eez_BRA)
 
 
 # Write a Raster for Suitability Analysis
-writeRaster(max_sst_mask, paste0(path, "/max_sst_mask"), overwrite = T)
-writeRaster(min_sst_mask, paste0(path, "/min_sst_mask"), overwrite = T)
+writeRaster(max_sst_mask, paste0(path, "/max_sst_mask.tif"), overwrite = T)
+writeRaster(min_sst_mask, paste0(path, "/min_sst_mask.tif"), overwrite = T)
 
 ```
 
 
-Create an Empty Raster Using EEZ Extent and Bio-Oracle Cell Size
+Create an Empty Raster Using SST as a Template
 ```{r}
-# Set the Resolution and Extent for Empty Raster
-extent <- extent(eez_BRA)
-res <-  res(min_sst_mask)
+# Reclassification matrix for empty raster
+rcl_mat_r <- c(-Inf, Inf, 0)
 
-# Create an Empty Raster 
-empty_raster <- raster( extent, resolution = res)
+# Reclassify the depth layer to make it an empty raster
+empty_raster <- reclassify(max_sst_mask, rcl= rcl_mat_r)
+
+# Export empty raster
+writeRaster(x = empty_raster, filename = paste0(path,"/empty_raster.tif"), overwrite = T)
 
 ```
 
@@ -170,7 +172,7 @@ depth_crop <- crop(depth_resample, eez_BRA)
 depth_mask <- mask(depth_crop, eez_BRA)
 
 # Write a Raster for Suitability Analysis
-writeRaster(depth_binary, paste0(path, "/depth_mask", overwrite = T))
+writeRaster(depth_mask, paste0(path, "/depth_mask.tif"), overwrite = T)
 ```
 
 Current Velocity, (Maximum Velocity at Minimum Depth), bio-oracle.org
@@ -203,7 +205,7 @@ max_cv_mask <- mask(max_cv_crop, eez_BRA)
 #plot(max_cv_mask)
 
  # Write a Raster for Suitability Analysis
-writeRaster(max_cv_mask, paste0(path, "/max_cv_mask", overwrite = T))
+writeRaster(max_cv_mask, paste0(path, "/max_cv_mask.tif"), overwrite = T)
 
 
 ```
@@ -214,7 +216,7 @@ Marine Protected Areas (MPAs) - WWF
 
 # Download File
 mpas <- read_sf(dsn = path,
-                layer = "WDPA_Mar2018_marine-shapefile-polygons")
+                layer = "WDPA_Mar2018_marine-shapefile-polygons") # Change to 2019 shapefile
 
 
 # Filter MPAs for Brazil
@@ -222,7 +224,7 @@ mpas_BRA <- mpas %>%
   filter(ISO3 == "BRA")
 
 # Plot MPAs
-#plot(mpas_BR$geometry)
+# plot(mpas_BRA$geometry)
 
 # View CRS
 #st_crs(mpas_BR)
@@ -244,7 +246,7 @@ plot(mpas_binary)
 #freq(mpas_binary)
 
 # Write a Raster for Suitability Analysis
-writeRaster(mpas_binary, paste0(path, "/mpas_binary", overwrite = T))
+writeRaster(mpas_binary, paste0(path, "/mpas_binary.tif"), overwrite = T)
 
 ```
 
@@ -264,7 +266,7 @@ reefs_binary <- rasterize(marine_ecosystems, empty_raster, field = 0, background
 plot(reefs_binary)
 
 # Write a Raster for Suitability Analysis
-writeRaster(reefs_binary, paste0(path, "/reefs_binary", overwrite = T))
+writeRaster(reefs_binary, paste0(path, "/reefs_binary.tif"), overwrite = T)
 
 ```
 
@@ -291,6 +293,44 @@ plot(dist_shore)
 writeRaster(x = dist_shore, filename = paste0(path,"/dist_shore.tif"), overwrite = T)
 ```
 
+Buffer EEZ
+```{r}
+eez_buffered <- st_buffer(eez_BRA, 100000)
+
+eez_buffered_proj <- st_transform(eez_buffered, crs = crs(shipping)) 
+
+plot(eez_buffered_proj$geometry)
+```
+
+
+
+
+Shipping Lanes
+```{r}
+# Read in and crop shipping to extent of buffered EEZ
+
+shipping <- raster(paste0(path, "/shipping.tif")) %>% 
+  crop(eez_buffered_proj)
+
+# Reproject to 5880 (Brazil's CRS)
+shipping_proj <- projectRaster(shipping, crs = crs_BRA)
+
+# Resample to Bio-Oracle Cell Size (ATM Bio-Oracle Cell Size is the Standard)
+shipping_resample <- resample(shipping_proj, min_sst_crop,method='ngb',progress='text')
+
+# Crop to Brazil EEZ 
+shipping_crop <- crop(shipping_resample, eez_BRA)
+
+# Mask to Brazil EEZ
+shipping_mask <- mask(shipping_crop, eez_BRA)
+
+# Write a Raster for Suitability Analysis
+writeRaster(shipping_mask, paste0(path, "/shipping_mask.tif"), overwrite = T)
+
+plot(shipping_mask)
+plot(shipping)
+
+```
 
 
 
