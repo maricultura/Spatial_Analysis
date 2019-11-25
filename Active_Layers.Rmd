@@ -30,7 +30,7 @@ library(marmap)
 library(rnaturalearth)
 library(dplyr)
 library(ggmap)
-#library(rmapshaper)
+library(rmapshaper)
 
 ```
 
@@ -74,7 +74,7 @@ eez_BRA <- eez %>%
 eez_BRA <- st_transform(eez_BRA, crs_BRA)
 
 # Plot Brazil EEZ
-#plot(eez_BRA$geometry)
+plot(eez_BRA$geometry)
 
 # View CRS
 #st_crs(eez_BRA)
@@ -119,12 +119,16 @@ min_sst_mask <- mask(min_sst_crop, eez_BRA)
 #hist(min_sst_BRA)
 
 # View Cropped Plots
+
 #plot(max_sst_BRA)
 #plot(min_sst_BRA)
 
 # Write a Raster for Suitability Analysis
 
-writeRaster(max_sst_mask, paste0(path, "/max_sst_mask"))
+# writeRaster(max_sst_mask, paste0(path, "/max_sst_mask", overwrite = FALSE))
+
+
+
 
 ```
 
@@ -212,6 +216,18 @@ max_cv_mask <- mask(max_cv_crop, eez_BRA)
 # View Cropped Plot
 #plot(max_cv_mask)
 
+# Reclassify
+# Reclassification Matrix for Current 
+ rcl_max_current <- c(-Inf, 1, 1,
+                    1, Inf, 0)
+
+ # Reclassify the Max Current
+ current_binary <- reclassify(max_cv_mas, rcl= rcl_max_current)
+
+ # Plot reclassified layer
+ plot(current_binary)
+
+
 ```
 
 
@@ -245,7 +261,7 @@ mpas_proj <- st_transform(mpas_BRA, crs = crs_BRA)
 mpas_binary <- rasterize(mpas_proj, empty_raster, field = 0, background = 1)
 
 # Plot Reclassified MPA Layer
-#plot(mpas_binary)
+plot(mpas_binary)
 #freq(mpas_binary)
 
 ```
