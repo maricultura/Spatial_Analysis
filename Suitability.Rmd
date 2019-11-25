@@ -28,7 +28,6 @@ max_cv_value <- 1
 
 
 Reclassifying depth to have 1s only if it's in between 25-100m, and 0s otherwise
-
 ```{r}
 # Read in file
 depth_mask <- raster(paste0(path,"/depth_mask.tif"))
@@ -40,9 +39,6 @@ rcl_mat_depth <- c(-Inf, max_depth, 0,
 
 # Reclassify the depth layer
 depth_binary <- reclassify(depth_mask,rcl= rcl_mat_depth)
-
-# Save as shapefile
-writeRaster(depth_binary, paste0(path, "/depth25to100.shp"))
 
 # Plot reclassified layer
 plot(depth_binary)
@@ -81,10 +77,10 @@ sst_binary_max <- reclassify(max_sst_BRA, rcl = rcl_matrix_max)
 plot(sst_binary_max)
 ```
 
-Current Velocity
+Reclassify max current velocity to have 1s only if it is less than 1m/s, and 0s otherwise
 ```{r}
 # Read in file
-max_sst_mask <- raster(paste0(path,"/max_sst_mask.tif"))
+max_cv_mask <- raster(paste0(path,"/max_cv_mask.tif"))
 
 # Reclassification matrix for current layer
 rcl_mat_current <- c(-Inf, max_cv_value, 1,
@@ -119,7 +115,7 @@ Suitable areas
 ```{r}
 # Overlay all layers
 # Note: they all need to have the same extent and resolution
-suitable <- overlay(sst_binary_min, sst_binary_max, depth_binary,current_binary,  fun = function(w,x,y,z){w+x+y+\z})
+suitable <- overlay(sst_binary_min, sst_binary_max, depth_binary, current_binary, dist_shore_binary, fun = function(a, b, c, d, e){a*b*c*d*e})
 
 # Plot suitable areas
 plot(suitable)
@@ -127,7 +123,15 @@ map('world', fill = T, add = T, col = 'gray')
 
 ```
 
+Total suitable area calculation
+```{r}
+a <- area(suitable)
+plot(a)
+b <- (suitable * a)
+plot(b)
 
+sum(values(b), na.rm = T)
+```
 
 
 
