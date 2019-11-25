@@ -22,6 +22,7 @@ max_depth <- -100
 min_sst_value <- 22
 max_sst_value <- 32
 max_dist_shore <- 46300 #25 nautical miles converted to meters
+max_cv_value <- 1
 
 ```
 
@@ -66,6 +67,9 @@ plot(sst_binary_min)
 
 Reclassify max SST layer to have 1s only if it is less than 30°C, and 0s otherwise
 ```{r}
+# Read in file
+max_sst_mask <- raster(paste0(path,"/max_sst_mask.tif"))
+
 # Reclassify matrix for max SST layer
 rcl_matrix_max <- c( -Inf, max_sst_value, 1,
                 max_sst_value, Inf, 0)
@@ -79,12 +83,15 @@ plot(sst_binary_max)
 
 Current Velocity
 ```{r}
+# Read in file
+max_sst_mask <- raster(paste0(path,"/max_sst_mask.tif"))
+
 # Reclassification matrix for current layer
-rcl_mat_current <- c(-Inf, 1, 1,
-                   1, Inf, 0)
+rcl_mat_current <- c(-Inf, max_cv_value, 1,
+                   max_cv_value, Inf, 0)
 
 # Reclassify the depth layer
-current_binary <- reclassify(current_BRA ,rcl= rcl_mat_current)
+current_binary <- reclassify(max_cv_mask ,rcl= rcl_mat_current)
 
 # Plot reclassified layer
 plot(current_binary)

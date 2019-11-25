@@ -171,14 +171,10 @@ depth_mask <- mask(depth_crop, eez_BRA)
 
 # Write a Raster for Suitability Analysis
 writeRaster(depth_binary, paste0(path, "/depth_mask", overwrite = T))
-
-
 ```
-
 
 Current Velocity, (Maximum Velocity at Minimum Depth), bio-oracle.org
 ```{r}
-
 # Download File 
 max_cv <- load_layers("BO2_curvelmax_bdmin")
 
@@ -206,19 +202,8 @@ max_cv_mask <- mask(max_cv_crop, eez_BRA)
 # View Cropped Plot
 #plot(max_cv_mask)
 
-# Reclassify
-# Reclassification Matrix for Current 
- rcl_max_current <- c(-Inf, 1, 1,
-                    1, Inf, 0)
-
- # Reclassify the Max Current
- current_binary <- reclassify(max_cv_mask, rcl= rcl_max_current)
-
- # Plot reclassified layer
- plot(current_binary)
- 
  # Write a Raster for Suitability Analysis
-writeRaster(current_binary, paste0(path, "/current_binary", overwrite = T))
+writeRaster(max_cv_mask, paste0(path, "/max_cv_mask", overwrite = T))
 
 
 ```
