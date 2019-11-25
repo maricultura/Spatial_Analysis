@@ -124,18 +124,27 @@ min_sst_mask <- mask(min_sst_crop, eez_BRA)
 
 # Reclassify
 # Set Reclassification Matrix for Max SST
+rcl_matrix_max <- c( -Inf, 30, 1,
+                30, Inf, 0)
+
 # Set Reclassification Matrix for Min SST
+rcl_matrix_min <- c( -Inf, 22, 0,
+                22, Inf, 1)
 
 # Reclassify Max SST
+sst_binary_max <- reclassify(max_sst_mask, rcl = rcl_matrix_max)
+
 # Reclassify Min SST
+sst_binary_min <- reclassify(min_sst_mask, rcl = rcl_matrix_min)
 
 # Plot Reclassified SST
-plot()
-plot()
+plot(sst_binary_max)
+plot(sst_binary_min)
 
 # Write a Raster for Suitability Analysis
 
 # writeRaster(max_sst_mask, paste0(path, "/max_sst_mask", overwrite = FALSE))
+
 
 
 
