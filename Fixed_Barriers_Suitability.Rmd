@@ -10,8 +10,22 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 MPAs
+```{r}
+# Read in file
+mpas_binary <- raster(paste0(path,"/mpas_binary.tif"))
+
+plot(mpas_binary)
+
+```
 
 Reefs
+```{r}
+# Read in file
+reefs_binary <- raster(paste0(path,"/reefs_binary.tif"))
+
+plot(reefs_binary)
+
+```
 
 Artificial Reefs
 
