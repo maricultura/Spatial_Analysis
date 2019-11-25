@@ -119,9 +119,19 @@ min_sst_mask <- mask(min_sst_crop, eez_BRA)
 #hist(min_sst_BRA)
 
 # View Cropped Plots
-
-#plot(max_sst_BRA)
+#plot(max_sst_mask)
 #plot(min_sst_BRA)
+
+# Reclassify
+# Set Reclassification Matrix for Max SST
+# Set Reclassification Matrix for Min SST
+
+# Reclassify Max SST
+# Reclassify Min SST
+
+# Plot Reclassified SST
+plot()
+plot()
 
 # Write a Raster for Suitability Analysis
 
@@ -222,7 +232,7 @@ max_cv_mask <- mask(max_cv_crop, eez_BRA)
                     1, Inf, 0)
 
  # Reclassify the Max Current
- current_binary <- reclassify(max_cv_mas, rcl= rcl_max_current)
+ current_binary <- reclassify(max_cv_mask, rcl= rcl_max_current)
 
  # Plot reclassified layer
  plot(current_binary)
