@@ -122,32 +122,10 @@ min_sst_mask <- mask(min_sst_crop, eez_BRA)
 #plot(max_sst_mask)
 #plot(min_sst_BRA)
 
-# Reclassify
-# Set Reclassification Matrix for Max SST
-rcl_matrix_max <- c( -Inf, 30, 1,
-                30, Inf, 0)
-
-# Set Reclassification Matrix for Min SST
-rcl_matrix_min <- c( -Inf, 22, 0,
-                22, Inf, 1)
-
-# Reclassify Max SST
-sst_binary_max <- reclassify(max_sst_mask, rcl = rcl_matrix_max)
-
-# Reclassify Min SST
-sst_binary_min <- reclassify(min_sst_mask, rcl = rcl_matrix_min)
-
-# Plot Reclassified SST
-plot(sst_binary_max)
-plot(sst_binary_min)
 
 # Write a Raster for Suitability Analysis
-
-writeRaster(max_sst_mask, paste0(path, "/max_sst_mask", overwrite = T))
-writeRaster(min_sst_mask, paste0(path, "/min_sst_mask", overwrite = T))
-
-
-
+writeRaster(max_sst_mask, paste0(path, "/max_sst_mask"), overwrite = T)
+writeRaster(min_sst_mask, paste0(path, "/min_sst_mask"), overwrite = T)
 
 ```
 
@@ -191,19 +169,8 @@ depth_crop <- crop(depth_resample, eez_BRA)
 # Mask to Brazil EEZ
 depth_mask <- mask(depth_crop, eez_BRA)
 
-# Set Reclassification Matrix for Depth
-rcl_mat_depth <- c(-Inf, -100, 0,
-                   -100, -25, 1,
-                   -25, Inf, 0)
-
-# Reclassify Depth 
-depth_binary <- reclassify(depth_mask,rcl= rcl_mat_depth)
-
-# Plot Reclassified Depth
-plot(depth_binary)
-
 # Write a Raster for Suitability Analysis
-writeRaster(depth_binary, paste0(path, "/depth_binary", overwrite = T))
+writeRaster(depth_binary, paste0(path, "/depth_mask", overwrite = T))
 
 
 ```
@@ -353,15 +320,6 @@ waves <- raster("G:/Shared drives/Bren GP 2020 maricultura/Data/Raw_Data/Active_
 plot(waves)
 ```
 
-
-
-No-Take Zones
-```{r}
-
-
-
-
-```
 
 
 

@@ -9,6 +9,19 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+MPAs
+
+Reefs
+
+Artificial Reefs
+
+No-take zones
+
+Wetlands
+
+Shipping lanes
+
+Oil rigs
 
 
 Suitable areas
