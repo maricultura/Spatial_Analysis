@@ -332,9 +332,53 @@ plot(shipping)
 
 ```
 
+OG Pipelines
+```{r}
+# Download File
+og_pipeline <- read_sf(dsn = path,
+                layer = "OG_Pipeline")
 
 
+# Reproject to 5880 (Brazil's CRS)
+og_pipeline_proj <- st_transform(og_pipeline, crs = crs_BRA)
 
+
+# Rasterizing 
+# Create a Binary Raster
+og_pipeline_binary <- rasterize(og_pipeline_proj, empty_raster, field = 0, background = 1) %>% 
+  mask(eez_BRA)
+
+# Plot
+plot(og_pipeline_binary)
+
+# Write a Raster for Suitability Analysis
+writeRaster(og_pipeline_binary, paste0(path, "/og_pipeline_binary.tif"), overwrite = T)
+
+```
+
+Oil and gas production
+```{r}
+# Download File
+og_production <- read_sf(dsn = path,
+                layer = "Oil_and_Gas_Production_Fields")
+
+
+# Reproject to 5880 (Brazil's CRS)
+og_production_proj <- st_transform(og_production, crs = crs_BRA)
+
+
+# Rasterizing 
+# Create a Binary Raster
+og_production_binary <- rasterize(og_production_proj, empty_raster, field = 0, background = 1) %>% 
+  mask(eez_BRA)
+
+# Plot
+plot(og_production_binary)
+
+# Write a Raster for Suitability Analysis
+writeRaster(og_production_binary, paste0(path, "/og_production_binary.tif"), overwrite = T)
+
+```
 
 
 Wave Height
