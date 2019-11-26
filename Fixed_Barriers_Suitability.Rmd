@@ -14,6 +14,7 @@ MPAs
 # Read in file
 mpas_binary <- raster(paste0(path,"/mpas_binary.tif"))
 
+# Plot
 plot(mpas_binary)
 
 ```
@@ -23,26 +24,62 @@ Reefs
 # Read in file
 reefs_binary <- raster(paste0(path,"/reefs_binary.tif"))
 
+# Plot
 plot(reefs_binary)
 
 ```
 
 Artificial Reefs
+```{r}
+# Read in file
+reefs_artificial_binary <- raster(paste0(path,"/reefs_artificial_binary.tif"))
+
+# Plot
+plot(reefs_artificial_binary)
+
+```
 
 No-take zones
 
 Wetlands
+```{r}
+# Read in file
+wetlands_binary <- raster(paste0(path,"/wetlands_binary.tif"))
+
+# Plot
+plot(wetlands_binary)
+
+```
 
 Shipping lanes
 
 Oil rigs
 
+Oil pipelines
+```{r}
+# Read in file
+og_pipeline_binary <- raster(paste0(path,"/og_pipeline_binary.tif"))
+
+# Plot
+plot(og_pipeline_binary)
+
+```
+
+Oil production
+```{r}
+# Read in file
+og_production_binary <- raster(paste0(path,"/og_production_binary.tif"))
+
+# Plot
+plot(og_production_binary)
+
+```
 
 Suitable areas
 ```{r}
 # Overlay all layers
 # Note: they all need to have the same extent and resolution
-suitable <- overlay(sst_binary_min, sst_binary_max, depth_binary,current_binary,  fun = function(w,x,y,z){w+x+y+\z})
+suitable_fixed <- overlay( reefs_binary, reefs_artificial, fun = function(a,b){a*b})
 
 # Plot suitable areas
 plot(suitable)

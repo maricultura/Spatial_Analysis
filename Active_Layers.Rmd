@@ -275,6 +275,47 @@ writeRaster(reefs_binary, paste0(path, "/reefs_binary.tif"), overwrite = T)
 
 ```
 
+# Artificial reefs
+```{r}
+# Read in layer, reproject, and drop z dimension
+reefs_artificial <-  read_sf(dsn = path,
+                layer = "Artificial_Reefs") %>% 
+  st_transform(crs = crs_BRA) %>%
+  st_zm(drop = TRUE, what = "ZM")
+
+# Rasterize artificial reefs
+reefs_artificial_binary <- rasterize(reefs_artificial, empty_raster, field = 0, background = 1) %>%
+  mask(eez_BRA)
+
+# Plot
+plot(reefs_artificial_binary)
+
+# Export
+writeRaster(x = reefs_artificial_binary, filename = paste0(path,"/reefs_artificial_binary.tif"), overwrite = T)
+```
+
+
+# Important wetlands Ramsar
+```{r}
+# Read in layer, reproject, and drop z dimension
+wetlands <-  read_sf(dsn = path,
+                layer = "Important_Wetlands_Ramsar") %>% 
+  st_transform(crs = crs_BRA)  %>%
+  st_zm(drop = TRUE, what = "ZM")
+
+# Rasterize wetlands
+wetlands_binary <- rasterize(wetlands, empty_raster, field = 0, background = 1)%>% 
+  mask(eez_BRA)
+
+# Plot
+plot(wetlands_binary)
+
+# Export
+writeRaster(x = wetlands_binary, filename = paste0(path,"/wetlands_binary.tif"), overwrite = T)
+
+```
+
+
 ---------Messy Beyond This Point-----------------
 
 Distance to shore (Anna)
@@ -314,7 +355,7 @@ Shipping Lanes
 ```{r}
 # Read in and crop shipping to extent of buffered EEZ
 
-shipping <- raster(paste0(path, "/shipping.tif")) %>% 
+shipping <- raster(paste0(path, "/shipping.tif"))%>% 
   crop(eez_buffered_proj)
 
 # Reproject to 5880 (Brazil's CRS)
@@ -334,6 +375,7 @@ writeRaster(shipping_mask, paste0(path, "/shipping_mask.tif"), overwrite = T)
 
 plot(shipping_mask)
 plot(shipping)
+plot(shipping_mask > 10)
 
 ```
 
