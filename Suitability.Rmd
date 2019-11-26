@@ -15,32 +15,44 @@ Suitability
 - Min sea surface temp: >22°C
 - Max sea surface temp: <30°C
 
-*Note: run data Rmd first!
+Defining variables
+```{r}
+min_depth <- -25
+max_depth <- -100
+min_sst_value <- 22
+max_sst_value <- 32
+max_dist_shore <- 46300 #25 nautical miles converted to meters
+max_cv_value <- 1
+
+```
+
 
 Reclassifying depth to have 1s only if it's in between 25-100m, and 0s otherwise
-
 ```{r}
+# Read in file
+depth_mask <- raster(paste0(path,"/depth_mask.tif"))
+
 # Reclassification matrix for depth layer
-rcl_mat_depth <- c(-Inf, -100, 0,
-                   -100, -25, 1,
-                   -25, Inf, 0)
+rcl_mat_depth <- c(-Inf, max_depth, 0,
+                   max_depth, min_depth, 1,
+                   min_depth, Inf, 0)
 
 # Reclassify the depth layer
-depth_binary <- reclassify(depth_BRA_res,rcl= rcl_mat_depth)
-
-# Save as shapefile
-writeRaster(depth_binary, paste0(path, "/depth25to100.shp"))
+depth_binary <- reclassify(depth_mask,rcl= rcl_mat_depth)
 
 # Plot reclassified layer
 plot(depth_binary)
 
 ```
 
-Reclassify min SST layer to have 1s only if it is above 19°C, and 0s otherwise
+Reclassify min SST layer to have 1s only if it is above 22°C, and 0s otherwise
 ```{r}
+# Read in file
+min_sst_mask <- raster(paste0(path,"/min_sst_mask.tif"))
+
 # Reclassification matrix for min SST
-rcl_matrix_min <- c( -Inf, 22, 0,
-                22, Inf, 1)
+rcl_matrix_min <- c( -Inf, min_sst_value, 0,
+                min_sst_value, Inf, 1)
 
 # Reclassify min SST
 sst_binary_min <- reclassify(min_sst_BRA, rcl = rcl_matrix_min)
@@ -51,9 +63,12 @@ plot(sst_binary_min)
 
 Reclassify max SST layer to have 1s only if it is less than 30°C, and 0s otherwise
 ```{r}
+# Read in file
+max_sst_mask <- raster(paste0(path,"/max_sst_mask.tif"))
+
 # Reclassify matrix for max SST layer
-rcl_matrix_max <- c( -Inf, 30, 1,
-                30, Inf, 0)
+rcl_matrix_max <- c( -Inf, max_sst_value, 1,
+                max_sst_value, Inf, 0)
 
 # Reclassify max SST layer
 sst_binary_max <- reclassify(max_sst_BRA, rcl = rcl_matrix_max)
@@ -62,25 +77,45 @@ sst_binary_max <- reclassify(max_sst_BRA, rcl = rcl_matrix_max)
 plot(sst_binary_max)
 ```
 
+Reclassify max current velocity to have 1s only if it is less than 1m/s, and 0s otherwise
 ```{r}
+# Read in file
+max_cv_mask <- raster(paste0(path,"/max_cv_mask.tif"))
+
 # Reclassification matrix for current layer
-rcl_mat_current <- c(-Inf, 1, 1,
-                   1, Inf, 0)
+rcl_mat_current <- c(-Inf, max_cv_value, 1,
+                   max_cv_value, Inf, 0)
 
 # Reclassify the depth layer
-current_binary <- reclassify(current_BRA ,rcl= rcl_mat_current)
+current_binary <- reclassify(max_cv_mask ,rcl= rcl_mat_current)
 
 # Plot reclassified layer
 plot(current_binary)
 
 ```
 
+Reclassify distance to shore layer to have 1s only if it is less than 25nm, and 0s otherwise
+```{r}
+# Read in file
+dist_shore <- raster(paste0(path,"/dist_shore.tif"))
+
+# Reclassify matrix for distance to shore layer
+rcl_matrix_dist_shore <- c( -Inf, 0, 0,
+                            0, max_dist_shore, 1,
+                            max_dist_shore, Inf, 0)
+
+# Reclassify distance to shore layer
+dist_shore_binary <- reclassify(dist_shore, rcl = rcl_matrix_dist_shore)
+
+# Plot reclassified layer
+plot(dist_shore_binary)
+```
 
 Suitable areas
 ```{r}
 # Overlay all layers
 # Note: they all need to have the same extent and resolution
-suitable <- overlay(sst_binary_min, sst_binary_max, depth_binary,current_binary,  fun = function(w,x,y,z){w+x+y+\z})
+suitable <- overlay(sst_binary_min, sst_binary_max, depth_binary, current_binary, dist_shore_binary, fun = function(a, b, c, d, e){a*b*c*d*e})
 
 # Plot suitable areas
 plot(suitable)
@@ -88,7 +123,15 @@ map('world', fill = T, add = T, col = 'gray')
 
 ```
 
+Total suitable area calculation
+```{r}
+a <- area(suitable)
+plot(a)
+b <- (suitable * a)
+plot(b)
 
+sum(values(b), na.rm = T)
+```
 
 
 

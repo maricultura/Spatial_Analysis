@@ -122,40 +122,29 @@ min_sst_mask <- mask(min_sst_crop, eez_BRA)
 #plot(max_sst_mask)
 #plot(min_sst_BRA)
 
-# Reclassify
-# Set Reclassification Matrix for Max SST
-rcl_matrix_max <- c( -Inf, 30, 1,
-                30, Inf, 0)
-
-# Set Reclassification Matrix for Min SST
-rcl_matrix_min <- c( -Inf, 22, 0,
-                22, Inf, 1)
-
-# Reclassify Max SST
-sst_binary_max <- reclassify(max_sst_mask, rcl = rcl_matrix_max)
-
-# Reclassify Min SST
-sst_binary_min <- reclassify(min_sst_mask, rcl = rcl_matrix_min)
-
-# Plot Reclassified SST
-plot(sst_binary_max)
-plot(sst_binary_min)
 
 # Write a Raster for Suitability Analysis
+<<<<<<< HEAD
 
 # writeRaster(max_sst_mask, paste0(path, "/max_sst_mask", overwrite = FALSE))
+=======
+writeRaster(max_sst_mask, paste0(path, "/max_sst_mask.tif"), overwrite = T)
+writeRaster(min_sst_mask, paste0(path, "/min_sst_mask.tif"), overwrite = T)
+>>>>>>> 3d2ac576a51e93f260397c2567f7121222a6507d
 
 ```
 
 
-Create an Empty Raster Using EEZ Extent and Bio-Oracle Cell Size
+Create an Empty Raster Using SST as a Template
 ```{r}
-# Set the Resolution and Extent for Empty Raster
-extent <- extent(eez_BRA)
-res <-  res(min_sst_mask)
+# Reclassification matrix for empty raster
+rcl_mat_r <- c(-Inf, Inf, 0)
 
-# Create an Empty Raster 
-empty_raster <- raster( extent, resolution = res)
+# Reclassify the depth layer to make it an empty raster
+empty_raster <- reclassify(max_sst_mask, rcl= rcl_mat_r)
+
+# Export empty raster
+writeRaster(x = empty_raster, filename = paste0(path,"/empty_raster.tif"), overwrite = T)
 
 ```
 
@@ -187,23 +176,12 @@ depth_crop <- crop(depth_resample, eez_BRA)
 # Mask to Brazil EEZ
 depth_mask <- mask(depth_crop, eez_BRA)
 
-# Set Reclassification Matrix for Depth
-rcl_mat_depth <- c(-Inf, -100, 0,
-                   -100, -25, 1,
-                   -25, Inf, 0)
-
-# Reclassify Depth 
-depth_binary <- reclassify(depth_mask,rcl= rcl_mat_depth)
-
-# Plot Reclassified Depth
-plot(depth_binary)
-
+# Write a Raster for Suitability Analysis
+writeRaster(depth_mask, paste0(path, "/depth_mask.tif"), overwrite = T)
 ```
-
 
 Current Velocity, (Maximum Velocity at Minimum Depth), bio-oracle.org
 ```{r}
-
 # Download File 
 max_cv <- load_layers("BO2_curvelmax_bdmin")
 
@@ -231,16 +209,8 @@ max_cv_mask <- mask(max_cv_crop, eez_BRA)
 # View Cropped Plot
 #plot(max_cv_mask)
 
-# Reclassify
-# Reclassification Matrix for Current 
- rcl_max_current <- c(-Inf, 1, 1,
-                    1, Inf, 0)
-
- # Reclassify the Max Current
- current_binary <- reclassify(max_cv_mask, rcl= rcl_max_current)
-
- # Plot reclassified layer
- plot(current_binary)
+ # Write a Raster for Suitability Analysis
+writeRaster(max_cv_mask, paste0(path, "/max_cv_mask.tif"), overwrite = T)
 
 
 ```
@@ -251,7 +221,7 @@ Marine Protected Areas (MPAs) - WWF
 
 # Download File
 mpas <- read_sf(dsn = path,
-                layer = "WDPA_Mar2018_marine-shapefile-polygons")
+                layer = "WDPA_Mar2018_marine-shapefile-polygons") # Change to 2019 shapefile
 
 
 # Filter MPAs for Brazil
@@ -259,7 +229,7 @@ mpas_BRA <- mpas %>%
   filter(ISO3 == "BRA")
 
 # Plot MPAs
-#plot(mpas_BR$geometry)
+# plot(mpas_BRA$geometry)
 
 # View CRS
 #st_crs(mpas_BR)
@@ -273,11 +243,15 @@ mpas_proj <- st_transform(mpas_BRA, crs = crs_BRA)
 
 # Rasterizing Steps for MPA Layer
 # Create a Binary MPA Raster
-mpas_binary <- rasterize(mpas_proj, empty_raster, field = 0, background = 1)
+mpas_binary <- rasterize(mpas_proj, empty_raster, field = 0, background = 1) %>% 
+  mask(eez_BRA)
 
 # Plot Reclassified MPA Layer
 plot(mpas_binary)
 #freq(mpas_binary)
+
+# Write a Raster for Suitability Analysis
+writeRaster(mpas_binary, paste0(path, "/mpas_binary.tif"), overwrite = T)
 
 ```
 
@@ -290,14 +264,85 @@ marine_ecosystems <- st_read(dsn = path, layer = "apzcm_alvo_ecossistemas_marinh
   st_zm(drop = TRUE, what = "ZM")
 
 # Create a Binary Reefs Rasters
-reefs_binary <- rasterize(marine_ecosystems, empty_raster, field = 0, background = 1)
+reefs_binary <- rasterize(marine_ecosystems, empty_raster, field = 0, background = 1) %>% 
+  mask(eez_BRA)
 
 # View Plots
 plot(reefs_binary)
 
+<<<<<<< HEAD
+=======
+# Write a Raster for Suitability Analysis
+writeRaster(reefs_binary, paste0(path, "/reefs_binary.tif"), overwrite = T)
+
+>>>>>>> 3d2ac576a51e93f260397c2567f7121222a6507d
 ```
 
 ---------Messy Beyond This Point-----------------
+
+Distance to shore (Anna)
+```{r}
+# Import the limits of Brazil #110, 50, or 10 meters for scale (resolution)
+bound_BRA <- ne_countries(scale = 110, country = "Brazil", returnclass = "sf") %>%
+  st_transform(crs_BRA) %>% 
+  sf::st_crop(eez_BRA)
+
+# Rasterize coastline
+coastline_raster <- rasterize(bound_BRA, empty_raster, field = 1)
+
+# Calculate distance to nearest non-NA pixel and mask to EEZ
+dist_shore <- distance(coastline_raster)%>% 
+  mask(eez_BRA)
+
+# Plot
+plot(dist_shore)
+
+# Export raster
+writeRaster(x = dist_shore, filename = paste0(path,"/dist_shore.tif"), overwrite = T)
+```
+
+Buffer EEZ
+```{r}
+eez_buffered <- st_buffer(eez_BRA, 100000)
+
+eez_buffered_proj <- st_transform(eez_buffered, crs = crs(shipping)) 
+
+plot(eez_buffered_proj$geometry)
+```
+
+
+
+
+Shipping Lanes
+```{r}
+# Read in and crop shipping to extent of buffered EEZ
+
+shipping <- raster(paste0(path, "/shipping.tif")) %>% 
+  crop(eez_buffered_proj)
+
+# Reproject to 5880 (Brazil's CRS)
+shipping_proj <- projectRaster(shipping, crs = crs_BRA)
+
+# Resample to Bio-Oracle Cell Size (ATM Bio-Oracle Cell Size is the Standard)
+shipping_resample <- resample(shipping_proj, min_sst_crop,method='ngb',progress='text')
+
+# Crop to Brazil EEZ 
+shipping_crop <- crop(shipping_resample, eez_BRA)
+
+# Mask to Brazil EEZ
+shipping_mask <- mask(shipping_crop, eez_BRA)
+
+# Write a Raster for Suitability Analysis
+writeRaster(shipping_mask, paste0(path, "/shipping_mask.tif"), overwrite = T)
+
+plot(shipping_mask)
+plot(shipping)
+
+```
+
+
+
+
 
 
 Wave Height
@@ -308,15 +353,6 @@ waves <- raster("G:/Shared drives/Bren GP 2020 maricultura/Data/Raw_Data/Active_
 plot(waves)
 ```
 
-
-
-No-Take Zones
-```{r}
-
-
-
-
-```
 
 
 
@@ -386,14 +422,6 @@ shore_distance_mask <- dist_to_shore < 46300
 
 plot(shore_distance_mask)
 
-```
-
-
-CRS
-```{r}
-# Use st_transform(layer, 5880)
-# IT WORKS!!!!!!!!
-st_transform(eez_BRA, 5880)
 ```
 
 
