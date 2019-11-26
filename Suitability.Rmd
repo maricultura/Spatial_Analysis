@@ -71,7 +71,7 @@ rcl_matrix_max <- c( -Inf, max_sst_value, 1,
                 max_sst_value, Inf, 0)
 
 # Reclassify max SST layer
-sst_binary_max <- reclassify(max_sst_BRA, rcl = rcl_matrix_max)
+sst_binary_max <- reclassify(max_sst_mask, rcl = rcl_matrix_max)
 
 # Plot reclassified layer
 plot(sst_binary_max)
