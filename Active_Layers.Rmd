@@ -145,10 +145,6 @@ plot(sst_binary_min)
 
 # writeRaster(max_sst_mask, paste0(path, "/max_sst_mask", overwrite = FALSE))
 
-
-
-
-
 ```
 
 
@@ -287,8 +283,6 @@ plot(mpas_binary)
 
 Reefs
 ```{r}
-
-
 # Read in, Reproject, and Simplify Reefs Layer and Remove Z Dimension
 marine_ecosystems <- st_read(dsn = path, layer = "apzcm_alvo_ecossistemas_marinhos") %>% 
   st_transform(crs_BRA) %>% 
@@ -300,7 +294,6 @@ reefs_binary <- rasterize(marine_ecosystems, empty_raster, field = 0, background
 
 # View Plots
 plot(reefs_binary)
-
 
 ```
 
@@ -375,7 +368,7 @@ rcl_matrix_dist_shore <- c(-Inf, 0, 0,
                            46300, Inf, 0)
 
 # Reclassify Distance to Shore Layer
-dist_shore_binary <- reclassify(distance_nonNA, rcl = rcl_matrix_dist_shore)
+dist_shore_binary <- reclassify(dist_to_shore, rcl = rcl_matrix_dist_shore)
 
 
 #Plot Reclassified Layers
