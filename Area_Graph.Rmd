@@ -1,0 +1,43 @@
+---
+title: "area_graph"
+author: "Anna Calle"
+date: "11/26/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+# Create vector with layer names
+layer_name <- c("Min SST", "Max SST", "Depth", "Current Speed", "Distance to Shore")
+
+
+# Create vector with number of 0 cells in raster
+freq_0 <- c(freq(sst_binary_min, value = 0), freq(sst_binary_max, value = 0), freq(depth_binary, value = 0), freq(current_binary, value = 0), freq(dist_shore_binary, value = 0))
+
+# Create df with layer names, frequency of 0 cells, and percentage of excluded area
+area_df <- data.frame(layer_name, freq_0) %>% 
+  mutate(percent_excluded = round(freq_0*100/30959, digits = 2)) %>% 
+  arrange(percent_excluded) %>% 
+   mutate( layer_name = factor(layer_name, levels = layer_name))
+
+# Plot
+area_col <- ggplot(area_df, aes(x = layer_name, y = percent_excluded)) +
+  geom_col(fill = "darkturquoise") +
+  coord_flip() +
+  ylab("Percentage of EEZ Excluded") +
+  xlab("") +
+  scale_y_continuous( expand = c(0,0)) +
+  theme_classic(14) +
+  geom_text(
+    aes(label = paste0(percent_excluded,"%"), y = percent_excluded + 15), 
+    color = "black", 
+    size = 5,
+    hjust = 1
+  ) 
+ 
+area_col
+
+```

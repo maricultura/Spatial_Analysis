@@ -270,11 +270,8 @@ reefs_binary <- rasterize(marine_ecosystems, empty_raster, field = 0, background
 # View Plots
 plot(reefs_binary)
 
-
-
 # Write a Raster for Suitability Analysis
 writeRaster(reefs_binary, paste0(path, "/reefs_binary.tif"), overwrite = T)
-
 
 ```
 

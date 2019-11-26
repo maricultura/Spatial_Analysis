@@ -119,7 +119,7 @@ suitable <- overlay(sst_binary_min, sst_binary_max, depth_binary, current_binary
 
 # Plot suitable areas
 plot(suitable)
-map('world', fill = T, add = T, col = 'gray')
+map('world', fill = T, add = T, col = 'gray') 
 
 ```
 
