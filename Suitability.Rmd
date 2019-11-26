@@ -55,7 +55,7 @@ rcl_matrix_min <- c( -Inf, min_sst_value, 0,
                 min_sst_value, Inf, 1)
 
 # Reclassify min SST
-sst_binary_min <- reclassify(min_sst_BRA, rcl = rcl_matrix_min)
+sst_binary_min <- reclassify(min_sst_mask, rcl = rcl_matrix_min)
 
 # Plot reclassified layer
 plot(sst_binary_min)
