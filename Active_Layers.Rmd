@@ -124,8 +124,13 @@ min_sst_mask <- mask(min_sst_crop, eez_BRA)
 
 
 # Write a Raster for Suitability Analysis
+<<<<<<< HEAD
+
+# writeRaster(max_sst_mask, paste0(path, "/max_sst_mask", overwrite = FALSE))
+=======
 writeRaster(max_sst_mask, paste0(path, "/max_sst_mask.tif"), overwrite = T)
 writeRaster(min_sst_mask, paste0(path, "/min_sst_mask.tif"), overwrite = T)
+>>>>>>> 3d2ac576a51e93f260397c2567f7121222a6507d
 
 ```
 
@@ -265,9 +270,12 @@ reefs_binary <- rasterize(marine_ecosystems, empty_raster, field = 0, background
 # View Plots
 plot(reefs_binary)
 
+<<<<<<< HEAD
+=======
 # Write a Raster for Suitability Analysis
 writeRaster(reefs_binary, paste0(path, "/reefs_binary.tif"), overwrite = T)
 
+>>>>>>> 3d2ac576a51e93f260397c2567f7121222a6507d
 ```
 
 ---------Messy Beyond This Point-----------------
@@ -440,7 +448,7 @@ rcl_matrix_dist_shore <- c(-Inf, 0, 0,
                            46300, Inf, 0)
 
 # Reclassify Distance to Shore Layer
-dist_shore_binary <- reclassify(distance_nonNA, rcl = rcl_matrix_dist_shore)
+dist_shore_binary <- reclassify(dist_to_shore, rcl = rcl_matrix_dist_shore)
 
 
 #Plot Reclassified Layers
