@@ -9,6 +9,8 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+
+Non-fixed variables
 ```{r}
 # Create vector with layer names
 layer_name <- c("Min SST", "Max SST", "Depth", "Current Speed", "Distance to Shore")
@@ -41,3 +43,55 @@ area_col <- ggplot(area_df, aes(x = layer_name, y = percent_excluded)) +
 area_col
 
 ```
+
+
+Fixed variables
+```{r}
+# Create vector with layer names
+fixed_layer_name <- c("MPAs", "Reefs", "Artificial Reefs", "Wetlands", "Oil Pipelines", "Oil Production")
+
+
+# Create vector with number of 0 cells in raster
+fixed_freq_0 <- c(freq(mpas_binary, value = 0), freq(reefs_binary, value = 0), freq(reefs_artificial_binary, value = 0), freq(wetlands_binary, value = 0), freq(og_pipeline_binary, value = 0), freq(og_production_binary, value = 0))
+
+# Create df with layer names, frequency of 0 cells, and percentage of excluded area
+fixed_area_df <- data.frame(fixed_layer_name, fixed_freq_0) %>% 
+  mutate(percent_excluded = round(fixed_freq_0*100/30959, digits = 2)) %>% 
+  arrange(percent_excluded) %>% 
+   mutate( fixed_layer_name = factor(fixed_layer_name, levels = fixed_layer_name))
+
+# Plot
+fixed_area_col <- ggplot(fixed_area_df, aes(x = fixed_layer_name, y = percent_excluded)) +
+  geom_col(fill = "darkturquoise") +
+  coord_flip() +
+  ylab("Percentage of EEZ Excluded") +
+  xlab("") +
+  scale_y_continuous( expand = c(0,0)) +
+  theme_classic(14) +
+  geom_text(
+    aes(label = paste0(percent_excluded,"%"), y = percent_excluded + .4), 
+    color = "black", 
+    size = 5,
+    hjust = 1
+  ) 
+ 
+fixed_area_col
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

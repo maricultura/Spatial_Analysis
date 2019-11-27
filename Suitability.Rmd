@@ -123,6 +123,7 @@ map('world', fill = T, add = T, col = 'gray')
 
 ```
 
+
 Total suitable area calculation
 ```{r}
 a <- area(suitable)

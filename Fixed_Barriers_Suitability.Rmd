@@ -79,10 +79,10 @@ Suitable areas
 ```{r}
 # Overlay all layers
 # Note: they all need to have the same extent and resolution
-suitable_fixed <- overlay( reefs_binary, reefs_artificial, fun = function(a,b){a*b})
+suitable_fixed <- overlay(mpas_binary, reefs_binary, reefs_artificial_binary, og_pipeline_binary, og_production_binary, wetlands_binary, fun = function(a, b, c, d, e, f){a*b*c*d*e*f})
 
 # Plot suitable areas
-plot(suitable)
+plot(suitable_fixed)
 map('world', fill = T, add = T, col = 'gray')
 
 ```
