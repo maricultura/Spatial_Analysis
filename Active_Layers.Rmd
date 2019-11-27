@@ -79,6 +79,8 @@ plot(eez_BRA$geometry)
 # View CRS
 #st_crs(eez_BRA)
 
+# Save shapefile
+st_write(eez_BRA, paste0(path, "/eez_BRA.shp"), delete_layer = TRUE)
 
 ```
 
@@ -343,7 +345,7 @@ Buffer EEZ
 ```{r}
 eez_buffered <- st_buffer(eez_BRA, 100000)
 
-eez_buffered_proj <- st_transform(eez_buffered, crs = crs(shipping)) 
+eez_buffered_proj <- st_transform(eez_buffered, crs = "+proj=moll +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +units=m +no_defs ") 
 
 plot(eez_buffered_proj$geometry)
 ```
