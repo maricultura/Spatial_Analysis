@@ -510,7 +510,32 @@ plot(shore_distance_mask)
 ```
 
 
+Aquaculture
+```{r}
+# Download File
+aquaculture <- read_sf(dsn = path,
+                layer = "Aquaculture")
 
+# plot(aquaculture$geometry)
+
+# We need a step here where we crop the land aquaculture using the coastline (most of the polygons are on land but there a few on the EEZ as well)
+
+# Reproject to 5880 (Brazil's CRS)
+aquaculture_proj <- st_transform(aquaculture, crs = crs_BRA)
+
+
+# Rasterizing 
+# Create a Binary Raster
+aquaculture_binary <- rasterize(aquaculture_proj, empty_raster, field = 0, background = 1) %>% 
+  mask(eez_BRA)
+
+# Plot
+plot(aquaculture_binary)
+
+# Write a Raster for Suitability Analysis
+writeRaster(aquaculture_binary, paste0(path, "/aquaculture_binary.tif"), overwrite = T)
+
+```
 
 
 
