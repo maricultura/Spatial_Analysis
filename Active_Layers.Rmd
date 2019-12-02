@@ -223,7 +223,7 @@ Marine Protected Areas (MPAs) - WWF
 
 # Download File
 mpas <- read_sf(dsn = path,
-                layer = "WDPA_Mar2018_marine-shapefile-polygons") # Change to 2019 shapefile
+                layer = "WDPA_Oct2019_marine-shapefile-polygons") 
 
 
 # Filter MPAs for Brazil
