@@ -246,6 +246,100 @@ suitable_graph
 
 ```
 
+Env. constrains
+```{r}
+# Following presentation slides
+env_constrains <-  overlay(sst_binary_min, sst_binary_max,current_binary, fun = function(a, b, c){a*b*c})
+
+# Plot
+plot(env_constrains)
+
+# Convert env. constrains raster to dataframe
+env_constrains_df <- as.data.frame(env_constrains, xy = T) %>% 
+  mutate(suitable= case_when(
+    layer == 1 ~ "Suitable",
+    layer != 1 ~ "Not Suitable"
+  ))
+
+# Create finalized graph
+env_constrains_graph <- ggplot() +
+    geom_raster(data = env_constrains_df,
+                mapping = aes(x = x, y = y, fill = suitable)) +
+  scale_fill_manual(
+    name = "", # Gives an empty title for the legend
+    labels = c("Not Suitable", "Suitable", ""),
+    values = c("lightblue1", "orange")) +
+    geom_sf(data = bound_BRA) +
+  theme_void() +
+  theme(panel.grid.major = element_line(color = "white"))
+
+env_constrains_graph
+
+```
+
+Cropped Layers
+```{r}
+# Following presentation slides
+cropped_layers <-  overlay(mpas_binary, reefs_binary, reefs_artificial_binary, og_pipeline_binary, og_production_binary, fun = function(a, b, c, d, e){a*b*c*d*e})
+
+# Plot
+plot(cropped_layers)
+
+# Convert env. constrains raster to dataframe
+cropped_layers_df <- as.data.frame(cropped_layers, xy = T) %>% 
+  mutate(suitable= case_when(
+    layer == 1 ~ "Suitable",
+    layer != 1 ~ "Not Suitable"
+  ))
+
+# Create finalized graph
+cropped_layers_graph <- ggplot() +
+    geom_raster(data = cropped_layers_df,
+                mapping = aes(x = x, y = y, fill = suitable)) +
+  scale_fill_manual(
+    name = "", # Gives an empty title for the legend
+    labels = c("Not Suitable", "Suitable", ""),
+    values = c("lightblue1", "orange")) +
+    geom_sf(data = bound_BRA) +
+  theme_void() +
+  theme(panel.grid.major = element_line(color = "white"))
+
+cropped_layers_graph
+
+```
+
+All Layers
+```{r}
+# Following presentation slides
+all_layers <-  overlay(sst_binary_min, sst_binary_max, depth_binary, current_binary, dist_shore_binary, mpas_binary, reefs_binary, reefs_artificial_binary, og_pipeline_binary, og_production_binary, fun = function(a, b, c, d, e, f, g, h, i, j){a*b*c*d*e*f*g*h*i*j})
+
+# Plot
+plot(all_layers)
+
+# Convert env. constrains raster to dataframe
+all_layers_df <- as.data.frame(all_layers, xy = T) %>% 
+  mutate(suitable= case_when(
+    layer == 1 ~ "Suitable",
+    layer != 1 ~ "Not Suitable"
+  ))
+
+# Create finalized graph
+all_layers_graph <- ggplot() +
+    geom_raster(data = all_layers_df,
+                mapping = aes(x = x, y = y, fill = suitable)) +
+  scale_fill_manual(
+    name = "", # Gives an empty title for the legend
+    labels = c("Not Suitable", "Suitable", ""),
+    values = c("lightblue1", "orange")) +
+    geom_sf(data = bound_BRA) +
+  theme_void() +
+  theme(panel.grid.major = element_line(color = "white"))
+
+all_layers_graph
+
+
+```
+
 
 
 Total suitable area calculation
@@ -255,8 +349,31 @@ plot(a)
 b <- (suitable * a)
 plot(b)
 
-sum(values(b), na.rm = T)
+sum(values(b), na.rm = T) # 36039808000 m^2 or 36039.808 km^2
 ```
+
+Total cropped layers area calculation
+```{r}
+a_cropped_layers <- area(cropped_layers)
+plot(a_cropped_layers)
+b_cropped_layers <- (cropped_layers * a_cropped_layers)
+plot(b_cropped_layers)
+
+sum(values(b_cropped_layers), na.rm = T) #2.653122e+12 m^2 or 2653122 km^2
+```
+
+
+Total all layers area calculation
+```{r}
+a_all_layers <- area(all_layers)
+plot(a_all_layers)
+b_all_layers <- (all_layers * a_all_layers)
+plot(b_all_layers)
+
+sum(values(b_all_layers), na.rm = T) #24561376000 m^2 or 24561 km^2
+```
+
+
 
 
 
