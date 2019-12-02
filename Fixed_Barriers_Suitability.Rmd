@@ -17,6 +17,19 @@ mpas_binary <- raster(paste0(path,"/mpas_binary.tif"))
 # Plot
 plot(mpas_binary)
 
+# Make df
+mpas_binary_df <- as.data.frame(mpas_binary, xy = T)
+
+# Graph with Brazil's outline
+mpas_binary_graph <- ggplot() +
+    geom_raster(data = mpas_binary_df,
+                mapping = aes(x = x, y = y, fill = mpas_binary)) +
+    geom_sf(data = bound_BRA) +
+  theme_void() +
+  theme(panel.grid.major = element_line(color = "white"))
+
+mpas_binary_graph
+
 ```
 
 Reefs
@@ -26,6 +39,19 @@ reefs_binary <- raster(paste0(path,"/reefs_binary.tif"))
 
 # Plot
 plot(reefs_binary)
+
+# Make df
+reefs_binary_df <- as.data.frame(reefs_binary, xy = T)
+
+# Graph with Brazil's outline
+reefs_binary_graph <- ggplot() +
+    geom_raster(data = reefs_binary_df,
+                mapping = aes(x = x, y = y, fill = reefs_binary)) +
+    geom_sf(data = bound_BRA) +
+  theme_void() +
+  theme(panel.grid.major = element_line(color = "white"))
+
+reefs_binary_graph
 
 ```
 
@@ -37,11 +63,24 @@ reefs_artificial_binary <- raster(paste0(path,"/reefs_artificial_binary.tif"))
 # Plot
 plot(reefs_artificial_binary)
 
+# Make df
+reefs_artificial_binary_df <- as.data.frame(reefs_artificial_binary, xy = T)
+
+# Graph with Brazil's outline
+reefs_artificial_binary_graph <- ggplot() +
+    geom_raster(data = reefs_artificial_binary_df,
+                mapping = aes(x = x, y = y, fill = reefs_artificial_binary)) +
+    geom_sf(data = bound_BRA) +
+  theme_void() +
+  theme(panel.grid.major = element_line(color = "white"))
+
+reefs_artificial_binary_graph
+
 ```
 
 No-take zones
 
-Wetlands
+Wetlands (not using in presentation)
 ```{r}
 # Read in file
 wetlands_binary <- raster(paste0(path,"/wetlands_binary.tif"))
@@ -63,6 +102,20 @@ og_pipeline_binary <- raster(paste0(path,"/og_pipeline_binary.tif"))
 # Plot
 plot(og_pipeline_binary)
 
+# Make df
+og_pipeline_binary_df <- as.data.frame(og_pipeline_binary, xy = T)
+
+# Graph with Brazil's outline
+og_pipeline_binary_graph <- ggplot() +
+    geom_raster(data = og_pipeline_binary_df,
+                mapping = aes(x = x, y = y, fill = og_pipeline_binary)) +
+    geom_sf(data = bound_BRA) +
+  theme_void() +
+  theme(panel.grid.major = element_line(color = "white"))
+
+og_pipeline_binary_graph
+
+
 ```
 
 Oil production
@@ -72,6 +125,19 @@ og_production_binary <- raster(paste0(path,"/og_production_binary.tif"))
 
 # Plot
 plot(og_production_binary)
+
+# Make df
+og_production_binary_df <- as.data.frame(og_production_binary, xy = T)
+
+# Graph with Brazil's outline
+og_production_binary_graph <- ggplot() +
+    geom_raster(data = og_production_binary_df,
+                mapping = aes(x = x, y = y, fill = og_production_binary)) +
+    geom_sf(data = bound_BRA) +
+  theme_void() +
+  theme(panel.grid.major = element_line(color = "white"))
+
+og_production_binary_graph
 
 ```
 
