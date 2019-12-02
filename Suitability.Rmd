@@ -33,6 +33,22 @@ max_cv_value <- 1
 ```
 
 
+
+Data for graphs
+```{r}
+# Read in Brazil's EEZ
+eez_BRA <- read_sf(dsn = path,
+                layer = "eez_BRA")
+# Brazil's outline in correct projection and cropped to the EEZ's extent
+bound_BRA <- ne_countries(scale = 50, country = "Brazil", returnclass = "sf") %>%
+  st_transform(crs_BRA) %>% 
+  sf::st_crop( bound_BRA, y = extent(eez_BRA))
+
+
+```
+
+
+
 Reclassifying depth to have 1s only if it's in between 25-100m, and 0s otherwise
 ```{r}
 # Read in file
@@ -48,6 +64,19 @@ depth_binary <- reclassify(depth_mask,rcl= rcl_mat_depth)
 
 # Plot reclassified layer
 plot(depth_binary)
+
+# Make df
+depth_binary_df <- as.data.frame(depth_binary, xy = T)
+
+# Graph with Brazil's outline
+depth_binary_graph <- ggplot() +
+    geom_raster(data = depth_binary_df,
+                mapping = aes(x = x, y = y, fill = depth_mask)) +
+    geom_sf(data = bound_BRA) +
+  theme_void() +
+  theme(panel.grid.major = element_line(color = "white"))
+
+depth_binary_graph
 
 ```
 
@@ -65,6 +94,19 @@ sst_binary_min <- reclassify(min_sst_mask, rcl = rcl_matrix_min)
 
 # Plot reclassified layer
 plot(sst_binary_min)
+
+# Make df
+sst_binary_min_df <- as.data.frame(sst_binary_min, xy = T)
+
+# Graph with Brazil's outline
+sst_binary_min_graph <- ggplot() +
+    geom_raster(data = sst_binary_min_df,
+                mapping = aes(x = x, y = y, fill = min_sst_mask)) +
+    geom_sf(data = bound_BRA) +
+  theme_void() +
+  theme(panel.grid.major = element_line(color = "white"))
+
+sst_binary_min_graph
 ```
 
 Reclassify max SST layer to have 1s only if it is less than 30°C, and 0s otherwise
@@ -81,6 +123,20 @@ sst_binary_max <- reclassify(max_sst_mask, rcl = rcl_matrix_max)
 
 # Plot reclassified layer
 plot(sst_binary_max)
+
+# Make df
+sst_binary_max_df <- as.data.frame(sst_binary_max, xy = T)
+
+# Graph with Brazil's outline
+sst_binary_max_graph <- ggplot() +
+    geom_raster(data = sst_binary_max_df,
+                mapping = aes(x = x, y = y, fill = max_sst_mask)) +
+    geom_sf(data = bound_BRA) +
+  theme_void() +
+  theme(panel.grid.major = element_line(color = "white"))
+
+sst_binary_max_graph
+
 ```
 
 Reclassify max current velocity to have 1s only if it is less than 1m/s, and 0s otherwise
@@ -97,6 +153,19 @@ current_binary <- reclassify(max_cv_mask ,rcl= rcl_mat_current)
 
 # Plot reclassified layer
 plot(current_binary)
+
+# Make df
+current_binary_df <- as.data.frame(current_binary, xy = T)
+
+# Graph with Brazil's outline
+current_binary_graph <- ggplot() +
+    geom_raster(data = current_binary_df,
+                mapping = aes(x = x, y = y, fill = max_cv_mask)) +
+    geom_sf(data = bound_BRA) +
+  theme_void() +
+  theme(panel.grid.major = element_line(color = "white"))
+
+current_binary_graph
 
 ```
 
@@ -115,6 +184,20 @@ dist_shore_binary <- reclassify(dist_shore, rcl = rcl_matrix_dist_shore)
 
 # Plot reclassified layer
 plot(dist_shore_binary)
+
+# Make df
+dist_shore_binary_df <- as.data.frame(dist_shore_binary, xy = T)
+
+# Graph with Brazil's outline
+dist_shore_binary_graph <- ggplot() +
+    geom_raster(data = dist_shore_binary_df,
+                mapping = aes(x = x, y = y, fill = dist_shore)) +
+    geom_sf(data = bound_BRA) +
+  theme_void() +
+  theme(panel.grid.major = element_line(color = "white"))
+
+dist_shore_binary_graph
+
 ```
 
 Suitable areas
@@ -130,14 +213,6 @@ plot(suitable)
 
 Finalized graph
 ```{r}
-# Read in Brazil's EEZ
-eez_BRA <- read_sf(dsn = path,
-                layer = "eez_BRA")
-# Brazil's outline in correct projection and cropped to the EEZ's extent
-bound_BRA <- ne_countries(scale = 50, country = "Brazil", returnclass = "sf") %>%
-  st_transform(crs_BRA) %>% 
-  sf::st_crop( bound_BRA, y = extent(suitable))
-
 # Convert suitable raster to dataframe
 suitable_df <- as.data.frame(suitable, xy = T) %>% 
   mutate(suitable= case_when(
