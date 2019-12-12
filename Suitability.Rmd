@@ -20,6 +20,9 @@ Suitability
 - Depth: 25-100m
 - Min sea surface temp: >22°C
 - Max sea surface temp: <30°C
+- Distance to shore: <25 nautical miles
+- Current velocity: <1m/s
+- Min dissolved oxygen: >4.41 mg/L (200.5 umol/L O2)
 
 Defining variables
 ```{r}
@@ -29,10 +32,23 @@ min_sst_value <- 22
 max_sst_value <- 32
 max_dist_shore <- 46300 #25 nautical miles converted to meters
 max_cv_value <- 1
+min_DO_value <- 200.5
 
 ```
 
+Set-Up for Downloading Data Using the "Maricultura" Google Drive File Stream
+```{r}
+# Create a Root to Extract Files 
+if(Sys.info()["sysname"] == "Windows"){ #If operating system is "Windows" use G: Drive
+  team_path <- "G:/"
+} else { # If it is not (i.e. Mac), use the Google Drive File Stream
+  team_path <- "/Volumes/GoogleDrive/"
+}
 
+#Create the Full File Path
+path <- paste0(team_path, "Shared drives/Bren GP 2020 maricultura/Data/Raw_Data/Active_Data_Layers")
+
+```
 
 Data for graphs
 ```{r}
@@ -199,6 +215,38 @@ dist_shore_binary_graph <- ggplot() +
 dist_shore_binary_graph
 
 ```
+
+Reclassify DO layer to have 1s only if it is above 200.5 umol, and 0s otherwise
+```{r}
+
+# Units? \xbemol/m\x9f
+# Read in file
+DO_min_mask <- raster(paste0(path,"/DO_min_mask.tif"))
+
+# Reclassification matrix for DO
+rcl_matrix_DO <- c( -Inf, min_DO_value, 0,
+                min_DO_value, Inf, 1)
+
+# Reclassify DO min
+DO_min_binary <- reclassify(DO_min_mask, rcl = rcl_matrix_DO)
+
+# Plot reclassified layer
+plot(DO_min_binary)
+
+# Make df
+DO_min_binary_df <- as.data.frame(DO_min_binary, xy = T)
+
+# Graph with Brazil's outline
+DO_min_binary_graph <- ggplot() +
+    geom_raster(data = DO_min_binary_df,
+                mapping = aes(x = x, y = y, fill = DO_min_mask)) +
+    geom_sf(data = bound_BRA) +
+  theme_void() +
+  theme(panel.grid.major = element_line(color = "white"))
+
+DO_min_binary_graph
+```
+
 
 Suitable areas
 ```{r}

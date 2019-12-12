@@ -87,18 +87,15 @@ st_write(eez_BRA, paste0(path, "/eez_BRA.shp"), delete_layer = TRUE)
 To Read in Bio-Oracle
 Minimum and Maximum Sea-Surface Temperatures (SST), bio-oracle.org
 ```{r}
+# Explore datasets in the 'sdmpredictors' package 
+# list_datasets() 
+
+# Explore layers in a dataset 
+# list_layers()
 
 # Download Files
 min_sst <- load_layers("BO_sstmin")
 max_sst <- load_layers("BO_sstmax")
-
-# View Histograms
-#hist(min_sst)
-#hist(max_sst)
-
-# View Plots
-#plot(min_sst)
-#plot(max_sst)
 
 # Reproject to 5880 (Brazil's CRS)
 min_sst_proj <-  projectRaster(min_sst, crs = crs_BRA)
@@ -116,26 +113,43 @@ min_sst_crop <- crop(min_sst_proj, eez_BRA)
 max_sst_mask <- mask(max_sst_crop, eez_BRA)
 min_sst_mask <- mask(min_sst_crop, eez_BRA)
 
-# View Cropped Histograms
-#hist(max_sst_BRA)
-#hist(min_sst_BRA)
-
-# View Cropped Plots
-#plot(max_sst_mask)
-#plot(min_sst_BRA)
-
-
-# Write a Raster for Suitability Analysis
-
-
-# writeRaster(max_sst_mask, paste0(path, "/max_sst_mask", overwrite = FALSE))
-
+# Save raster
 writeRaster(max_sst_mask, paste0(path, "/max_sst_mask.tif"), overwrite = T)
 writeRaster(min_sst_mask, paste0(path, "/min_sst_mask.tif"), overwrite = T)
 
 
 ```
 
+Dissolved Oxygen (DO), bio-oracle.org
+```{r}
+# Explore datasets in the package 
+# list_datasets() 
+
+# Explore layers in a dataset 
+ list_layers()
+
+# Download Files
+DO_min <- load_layers("BO2_dissoxmin_bdmin")
+
+# Reproject to 5880 (Brazil's CRS)
+DO_min_proj <-  projectRaster(DO_min, crs = crs_BRA)
+
+# View CRS
+st_crs(DO_min_proj)
+
+# Crop to Brazil EEZ
+DO_min_crop <- crop(DO_min_proj, eez_BRA)
+
+# Mask to Brazil EEZ
+DO_min_mask <- mask(DO_min_crop, eez_BRA)
+
+# Plot
+plot(DO_min_mask)
+
+# Save raster
+writeRaster(DO_min_mask, paste0(path, "/DO_min_mask.tif"), overwrite = T)
+
+```
 
 Create an Empty Raster Using SST as a Template
 ```{r}
