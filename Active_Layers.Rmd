@@ -231,6 +231,26 @@ writeRaster(max_cv_mask, paste0(path, "/max_cv_mask.tif"), overwrite = T)
 
 ```
 
+Distance to shore (Anna)
+```{r}
+# Import the limits of Brazil #110, 50, or 10 meters for scale (resolution)
+bound_BRA <- ne_countries(scale = 110, country = "Brazil", returnclass = "sf") %>%
+  st_transform(crs_BRA) %>% 
+  sf::st_crop(eez_BRA)
+
+# Rasterize coastline
+coastline_raster <- rasterize(bound_BRA, empty_raster, field = 1)
+
+# Calculate distance to nearest non-NA pixel and mask to EEZ
+dist_shore <- distance(coastline_raster)%>% 
+  mask(eez_BRA)
+
+# Plot
+plot(dist_shore)
+
+# Export raster
+writeRaster(x = dist_shore, filename = paste0(path,"/dist_shore.tif"), overwrite = T)
+```
 
 Marine Protected Areas (MPAs) - WWF
 ```{r}
@@ -334,26 +354,7 @@ writeRaster(x = wetlands_binary, filename = paste0(path,"/wetlands_binary.tif"),
 
 ---------Messy Beyond This Point-----------------
 
-Distance to shore (Anna)
-```{r}
-# Import the limits of Brazil #110, 50, or 10 meters for scale (resolution)
-bound_BRA <- ne_countries(scale = 110, country = "Brazil", returnclass = "sf") %>%
-  st_transform(crs_BRA) %>% 
-  sf::st_crop(eez_BRA)
 
-# Rasterize coastline
-coastline_raster <- rasterize(bound_BRA, empty_raster, field = 1)
-
-# Calculate distance to nearest non-NA pixel and mask to EEZ
-dist_shore <- distance(coastline_raster)%>% 
-  mask(eez_BRA)
-
-# Plot
-plot(dist_shore)
-
-# Export raster
-writeRaster(x = dist_shore, filename = paste0(path,"/dist_shore.tif"), overwrite = T)
-```
 
 Buffer EEZ
 ```{r}
