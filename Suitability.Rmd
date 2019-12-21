@@ -12,6 +12,9 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r}
 # Load required packages
 library(rnaturalearthdata)
+library(rnaturalearth)
+library(sf)
+library(raster)
 ```
 
 
@@ -26,7 +29,7 @@ Suitability
 
 Defining variables
 ```{r}
-min_depth <- -25
+min_depth <- -25 
 max_depth <- -100
 min_sst_value <- 22
 max_sst_value <- 32
@@ -48,6 +51,12 @@ if(Sys.info()["sysname"] == "Windows"){ #If operating system is "Windows" use G:
 #Create the Full File Path
 path <- paste0(team_path, "Shared drives/Bren GP 2020 maricultura/Data/Raw_Data/Active_Data_Layers")
 
+```
+
+CRS
+```{r}
+# Assign projection: SIRGAS 2000 / Brazil Polyconic
+crs_BRA <- "+proj=poly +lat_0=0 +lon_0=-54 +x_0=5000000 +y_0=10000000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
 ```
 
 Data for graphs
@@ -219,7 +228,7 @@ dist_shore_binary_graph
 Reclassify DO layer to have 1s only if it is above 200.5 umol, and 0s otherwise
 ```{r}
 
-# Units? \xbemol/m\x9f
+# Units? \xbemol/m\x9f mol/ m3
 # Read in file
 DO_min_mask <- raster(paste0(path,"/DO_min_mask.tif"))
 
