@@ -117,7 +117,6 @@ min_sst_mask <- mask(min_sst_crop, eez_BRA)
 writeRaster(max_sst_mask, paste0(path, "/max_sst_mask.tif"), overwrite = T)
 writeRaster(min_sst_mask, paste0(path, "/min_sst_mask.tif"), overwrite = T)
 
-
 ```
 
 Dissolved Oxygen (DO), bio-oracle.org
@@ -375,8 +374,12 @@ Shipping Lanes
 shipping <- raster(paste0(path, "/shipping.tif"))%>% 
   crop(eez_buffered_proj)
 
-# Reproject to 5880 (Brazil's CRS)
-shipping_proj <- projectRaster(shipping, crs = crs_BRA)
+# Reproject to 5880 (Brazil's CRS) and applt focal function to smooth
+shipping_proj <- projectRaster(shipping, crs = crs_BRA) %>% 
+   focal(w = matrix(1, 3, 3), mean)                   
+
+
+shipping_proj <- shipping_proj > 12 # Filter values > 12 as T
 
 # Resample to Bio-Oracle Cell Size (ATM Bio-Oracle Cell Size is the Standard)
 shipping_resample <- resample(shipping_proj, min_sst_crop,method='ngb',progress='text')
@@ -386,6 +389,7 @@ shipping_crop <- crop(shipping_resample, eez_BRA)
 
 # Mask to Brazil EEZ
 shipping_mask <- mask(shipping_crop, eez_BRA)
+
 
 # Write a Raster for Suitability Analysis
 writeRaster(shipping_mask, paste0(path, "/shipping_mask.tif"), overwrite = T)
