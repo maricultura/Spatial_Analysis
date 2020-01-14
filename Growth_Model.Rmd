@@ -73,22 +73,26 @@ coeff for cobia
 Mean Sea-Surface Temperatures (SST), bio-oracle.org
 ```{r}
 # Download Files
-mean_sst <- load_layers("BO2_tempmean_ss")
+# mean_sst <- load_layers("BO2_tempmean_ss")
 
 # Reproject to 5880 (Brazil's CRS)
-mean_sst_proj <-  projectRaster(mean_sst, crs = crs_BRA)
+# mean_sst_proj <-  projectRaster(mean_sst, crs = crs_BRA)
 
 # View CRS
-st_crs(mean_sst_proj)
+# st_crs(mean_sst_proj)
 
 # Crop to Brazil EEZ
-mean_sst_crop <- crop(mean_sst_proj, eez_BRA)
+# mean_sst_crop <- crop(mean_sst_proj, eez_BRA)
 
 # Mask to Brazil EEZ
-mean_sst_mask <- mask(mean_sst_crop, eez_BRA)
+# mean_sst_mask <- mask(mean_sst_crop, eez_BRA)
 
 # Save raster
-writeRaster(mean_sst_mask, paste0(path, "/mean_sst_mask.tif"), overwrite = T)
+# writeRaster(mean_sst_mask, paste0(path, "/mean_sst_mask.tif"), overwrite = T)
+
+
+# Read saved raster
+mean_sst_mask <- raster(paste0(path,"/mean_sst_mask.tif"))
 ```
 
 
@@ -111,7 +115,7 @@ a1 = 0.0714
 a2 = -0.1667
 b1 = -1.5714
 b2 = 5.3333
-T0 = 25
+T0 = 29
 
 growth_function = function (a1, a2, b1, b2, T0, temp_suitable_raster) {
 if (temp_suitable_raster < T0) {
@@ -139,7 +143,37 @@ growth_function(a1, a2, b1, b2, T0, temp_suitable_raster = mean_sst)
 
 ```{r}
 
-# Convert zeros into NAs
+# Convert zeros into NAs, otherwise all background would be less than T0
+suitable_sst[suitable_sst == 0] <- NA 
+
+# Separete cells into cells above and below optimal SST
+cells_below_optimal <- suitable_sst < T0
+plot(cells_below_optimal)
+
+cells_above_optimal <-  suitable_sst > T0
+plot(cells_above_optimal)
+
+# Apply growth equations
+growth_below_optimal <- a1*cells_below_optimal*suitable_sst - b1*cells_below_optimal
+growth_above_optimal <- a2*cells_above_optimal*suitable_sst + b2*cells_above_optimal
+
+# Plot results of growth equations
+plot(growth_below_optimal)
+plot(growth_above_optimal)
+
+# Add both rasters
+growth_added <- growth_above_optimal + growth_below_optimal
+
+# Plot final raster
+plot(growth_added)
+
+```
+
+
+```{r}
+
+growth_function = function (a1, a2, b1, b2, T0, temp_suitable_raster) {
+# Convert zeros into NAs, otherwise all background would be less than T0
 suitable_sst[suitable_sst == 0] <- NA
 
 # Separete cells into cells above and below optimal SST
@@ -162,6 +196,8 @@ growth_added <- growth_above_optimal + growth_below_optimal
 
 # Plot final raster
 plot(growth_added)
+
+}
 
 ```
 
