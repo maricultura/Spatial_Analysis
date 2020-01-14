@@ -1,5 +1,5 @@
 ---
-title: "Function_on_Raster"
+title: "Area_Function"
 author: "Anna Calle"
 date: "1/12/2020"
 output: html_document
@@ -17,7 +17,7 @@ library(tidyverse)
 ```{r}
 # Simple function to calculate suitable area of a raster
 suitable_area <- function (raster) {
-a <- area(raster) # computes area of all cells in a raster
+a <- area(raster) # computes area of all cells in the raster
 b <- (raster * a) # keeps area of cells that are suitable
 
 area_value <- sum(values(b), na.rm = T)/(10^6) # total area value in km^2
