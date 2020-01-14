@@ -1,0 +1,36 @@
+---
+title: "Function_on_Raster"
+author: "Anna Calle"
+date: "1/12/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+# Load required packages
+library(tidyverse)
+```
+
+```{r}
+# Simple function to calculate suitable area of a raster
+suitable_area <- function (raster) {
+a <- area(raster) # computes area of all cells in a raster
+b <- (raster * a) # keeps area of cells that are suitable
+
+area_value <- sum(values(b), na.rm = T)/(10^6) # total area value in km^2
+print(area_value)
+}
+
+# Use function on suitable raster
+suitable_area(suitable)
+
+```
+
+
+
+
+
+
