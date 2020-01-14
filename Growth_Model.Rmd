@@ -1,0 +1,158 @@
+---
+title: "Growth Model"
+author: "Anna Calle"
+date: "1/13/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+three inputs for species:
+
+- salmon
+- gilthead
+- cobia
+
+
+
+Defining values for coefficients/variabkes based on inputs
+
+a1 = if (input$species = salmon){
+coeff for salmon
+}
+else if (input$species = gilthead){
+coeff for gilthead
+}
+else (input$species = cobia){
+coeff for cobia
+}
+
+a2 = if (input$species = salmon){
+coeff for salmon
+}
+else if (input$species = gilthead){
+coeff for gilthead
+}
+else (input$species = cobia){
+coeff for cobia
+}
+
+b1 = if (input$species = salmon){
+coeff for salmon
+}
+else if (input$species = gilthead){
+coeff for gilthead
+}
+else (input$species = cobia){
+coeff for cobia
+}
+
+b2 = if (input$species = salmon){
+coeff for salmon
+}
+else if (input$species = gilthead){
+coeff for gilthead
+}
+else (input$species = cobia){
+coeff for cobia
+}
+
+T0 =
+if (input$species = salmon){
+coeff for salmon
+}
+else if (input$species = gilthead){
+coeff for gilthead
+}
+else (input$species = cobia){
+coeff for cobia
+}
+
+```{r}
+
+# Download Files
+mean_sst <- load_layers("BO2_tempmean_bdmin")
+
+# Reproject to 5880 (Brazil's CRS)
+mean_sst_proj <-  projectRaster(mean_sst, crs = crs_BRA)
+
+# View CRS
+st_crs(mean_sst_proj)
+
+# Crop to Brazil EEZ
+mean_sst_crop <- crop(mean_sst_proj, eez_BRA)
+
+# Mask to Brazil EEZ
+mean_sst_mask <- mask(mean_sst_crop, eez_BRA)
+
+# Save raster
+writeRaster(mean_sst_mask, paste0(path, "/mean_sst_mask.tif"), overwrite = T)
+```
+
+
+
+
+
+
+```{r}
+
+
+a1 = 0.0714
+a2 = -0.1667
+b1 = -1.5714
+b2 = 5.3333
+T0 = 29
+
+growth_function = function (a1, a2, b1, b2, T0, temp_suitable_raster) {
+
+if (temp_suitable_raster < T0) {
+lower_growth_eq <- a1*temp_suitable_raster - b1
+
+plot(lower_growth_eq)
+}
+
+else {
+upper_growth_eq <- a2*temp_suitable_raster + b2
+
+plot(upper_growth_eq)
+}
+}
+
+```
+
+```{r}
+# Apply function
+
+growth_function(a1, a2, b1, b2, T0, temp_suitable_raster = mean_sst)
+```
+
+
+```{r}
+less_than_T0 <- mean_sst < T0
+plot(less_than_T0)
+```
+
+
+
+
+
+
+
+Function
+
+growth_function = function (a1, a2, b1, b2, T0, temp_suitable_raster) {
+
+if (temp_suitable_raster < T0) {
+
+}
+
+else (temp_suitable_raster < T0) {
+
+}
+
+
+}
+
+
