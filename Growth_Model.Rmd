@@ -143,6 +143,7 @@ growth_function(a1, a2, b1, b2, T0, temp_suitable_raster = mean_sst)
 
 ```{r}
 
+growth_function = function (a1, a2, b1, b2, T0, suitable_sst){
 # Convert zeros into NAs, otherwise all background would be less than T0
 suitable_sst[suitable_sst == 0] <- NA 
 
@@ -150,7 +151,7 @@ suitable_sst[suitable_sst == 0] <- NA
 cells_below_optimal <- suitable_sst < T0
 plot(cells_below_optimal)
 
-cells_above_optimal <-  suitable_sst > T0
+cells_above_optimal <-  suitable_sst >= T0
 plot(cells_above_optimal)
 
 # Apply growth equations
@@ -166,13 +167,13 @@ growth_added <- growth_above_optimal + growth_below_optimal
 
 # Plot final raster
 plot(growth_added)
-
+}
 ```
 
 
 ```{r}
 
-growth_function = function (a1, a2, b1, b2, T0, temp_suitable_raster) {
+growth_function = function (a1, a2, b1, b2, T0, suitable_sst) {
 # Convert zeros into NAs, otherwise all background would be less than T0
 suitable_sst[suitable_sst == 0] <- NA
 
