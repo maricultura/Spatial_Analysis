@@ -81,15 +81,36 @@ Reclassifying depth to have 1s only if it's in between 25-100m, and 0s otherwise
 # Read in file
 depth_mask <- raster(paste0(path,"/depth_mask.tif"))
 
-# Reclassification matrix for depth layer
-rcl_mat_depth <- c(-Inf, max_depth, 0,
-                   max_depth, min_depth, 1,
-                   min_depth, Inf, 0)
+# Reclassification matrix for depth layer that makes NA background zeros, suitable cells 2, an unsuitable 1
+rcl_mat_depth <- c(-Inf, max_depth, 1,
+                   max_depth, min_depth, 2,
+                   min_depth, 0, 1,
+                   0, Inf, 0)
 
 # Reclassify the depth layer
-depth_binary <- reclassify(depth_mask,rcl= rcl_mat_depth)
+depth_binary_1 <- reclassify(depth_mask,rcl= rcl_mat_depth)
 
-# Plot reclassified layer
+# Adding missing portion of EEZ using an raster cropped to the correct shape of the EEZ
+
+# Read in 1's raster
+raster_all_1 <- raster(paste0(path,"/raster_ones.tif"))
+
+# Crop to EEZ
+eez_all_1 <- crop(raster_all_1, eez_BRA)
+
+# Save raster (to use in app)
+writeRaster(eez_all_1, paste0(path, "/eez_all_1.tif"), overwrite = T)
+
+# Overlay two layers
+depth_binary_2 <- overlay(depth_binary_1, eez_all_1, fun = function(a, b) {a + b})
+
+# Reclassification matrix for depth layer
+rcl_mat_depth_2 <- c(-Inf, 2.1, 0,
+                   2.9, 3.1, 1)
+
+# Reclassify the depth layer
+depth_binary <- reclassify(depth_binary_2,rcl= rcl_mat_depth_2)
+
 plot(depth_binary)
 
 # Make df

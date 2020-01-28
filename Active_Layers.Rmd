@@ -106,16 +106,16 @@ st_crs(min_sst_proj)
 st_crs(max_sst_proj)
 
 # Crop to Brazil EEZ
-max_sst_crop <- crop(max_sst_proj, eez_BRA)
 min_sst_crop <- crop(min_sst_proj, eez_BRA)
+max_sst_crop <- crop(max_sst_proj, eez_BRA)
 
 # Mask to Brazil EEZ
-max_sst_mask <- mask(max_sst_crop, eez_BRA)
 min_sst_mask <- mask(min_sst_crop, eez_BRA)
+max_sst_mask <- mask(max_sst_crop, eez_BRA)
 
 # Save raster
-writeRaster(max_sst_mask, paste0(path, "/max_sst_mask.tif"), overwrite = T)
 writeRaster(min_sst_mask, paste0(path, "/min_sst_mask.tif"), overwrite = T)
+writeRaster(max_sst_mask, paste0(path, "/max_sst_mask.tif"), overwrite = T)
 
 ```
 
@@ -190,6 +190,9 @@ depth_crop <- crop(depth_resample, eez_BRA)
 
 # Mask to Brazil EEZ
 depth_mask <- mask(depth_crop, eez_BRA)
+
+# Change NAs to 99999 to be able to fix missing part of the EEZ later
+depth_mask[is.na(depth_mask[])] <- 99999
 
 # Write a Raster for Suitability Analysis
 writeRaster(depth_mask, paste0(path, "/depth_mask.tif"), overwrite = T)
