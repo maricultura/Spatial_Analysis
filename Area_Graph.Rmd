@@ -72,7 +72,7 @@ fixed_area_col <- ggplot(fixed_area_df, aes(x = fixed_layer_name, y = percent_ex
     aes(label = paste0(percent_excluded,"%"), y = percent_excluded + .4), 
     color = "black", 
     size = 5,
-    hjust = 1
+    hjust = 0.1
   ) 
  
 fixed_area_col

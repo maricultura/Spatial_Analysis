@@ -109,41 +109,32 @@ plot(suitable_sst)
 
 
 ```{r}
-
-
+# Defining variables for cobia
 a1 = 0.0714
 a2 = -0.1667
 b1 = -1.5714
 b2 = 5.3333
 T0 = 29
 
-growth_function = function (a1, a2, b1, b2, T0, temp_suitable_raster) {
-if (temp_suitable_raster < T0) {
-lower_growth_eq <- a1*temp_suitable_raster - b1
+# Create df with all values for variables
+species_var_df <- data.frame(species = c(1, 2, 3),
+                             a1 = c(0.0264, 0.026, 0.0714), 
+                             a2 = c(-0.066, -0.0042, -0.1667), 
+                             b1 = c(-0.0396,-0.0308, -1.5714), 
+                             b2 = c(1.254, 0.1388, 5.3333), 
+                             T0 = c(14, 25, 29))
 
-plot(lower_growth_eq)
-}
+# Select third row values (cobia)
+cobia <- as.numeric(species_var_df[3,])
+a1 <-  subset(species_var_df, species == "cobia", select = a1) %>% 
+  as.numeric()
 
-else {
-upper_growth_eq <- a2*temp_suitable_raster + b2
-
-plot(upper_growth_eq)
-}
-}
-
-
-growth_eq <- ifelse(temp_suitable_raster < T0 , a1*temp_suitable_raster - b1 , a2*temp_suitable_raster + b2)
-
-# Apply function
-
-growth_function(a1, a2, b1, b2, T0, temp_suitable_raster = mean_sst)
 ```
 
 
 
 ```{r}
-
-growth_function = function (a1, a2, b1, b2, T0, suitable_sst){
+# Process without making it into a function
 # Convert zeros into NAs, otherwise all background would be less than T0
 suitable_sst[suitable_sst == 0] <- NA 
 
@@ -167,38 +158,41 @@ growth_added <- growth_above_optimal + growth_below_optimal
 
 # Plot final raster
 plot(growth_added)
-}
+
 ```
 
 
+
+
 ```{r}
-
-growth_function = function (a1, a2, b1, b2, T0, suitable_sst) {
-# Convert zeros into NAs, otherwise all background would be less than T0
-suitable_sst[suitable_sst == 0] <- NA
-
-# Separete cells into cells above and below optimal SST
-cells_below_optimal <- suitable_sst < T0
-plot(cells_below_optimal)
-
-cells_above_optimal <-  suitable_sst > T0
-plot(cells_above_optimal)
-
-# Apply growth equations
-growth_below_optimal <- a1*cells_below_optimal*suitable_sst - b1*cells_below_optimal
-growth_above_optimal <- a2*cells_above_optimal*suitable_sst + b2*cells_above_optimal
-
-# Plot results of growth equations
-plot(growth_below_optimal)
-plot(growth_above_optimal)
-
-# Add both rasters
-growth_added <- growth_above_optimal + growth_below_optimal
-
-# Plot final raster
-plot(growth_added)
-
+# Function
+growth_function = function (species_var, suitable_sst) {
+  # Set variables from vector (starts at element 2 because element 1 is species name)
+  a1 = species_var[2]
+  a2 = species_var[3]
+  b1 = species_var[4]
+  b2 = species_var[5]
+  T0 = species_var[6]
+  
+  # Convert zeros into NAs, otherwise all background would be less than T0
+  suitable_sst[suitable_sst == 0] <- NA
+  
+  # Separete cells into cells above and below optimal SST
+  cells_below_optimal <- suitable_sst < T0
+  
+  cells_above_optimal <-  suitable_sst > T0
+  
+  # Apply growth equations
+  growth_below_optimal <- a1*cells_below_optimal*suitable_sst - b1*cells_below_optimal
+  growth_above_optimal <- a2*cells_above_optimal*suitable_sst + b2*cells_above_optimal
+  
+  # Add both rasters
+  growth_added <- growth_above_optimal + growth_below_optimal
 }
+
+# Apply function
+cobia_growth <- growth_function(cobia, suitable_sst)
+plot(cobia_growth)
 
 ```
 
