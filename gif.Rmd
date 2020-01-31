@@ -1,0 +1,73 @@
+---
+title: "gif"
+author: "Anna Calle"
+date: "1/30/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Requirements: 
+- ImageMagick needs to be installed in computer (https://imagemagick.org/index.php)
+- Need to run Suitability.Rmd
+
+```{r}
+# Load required packages
+library(magick)
+```
+
+
+```{r}
+# set working directory to gif folder
+setwd("gif")
+
+# png of EEZ
+# png(file="eez_all_1_graph.png")
+#  eez_all_1_graph
+# dev.off()
+
+# png of depth
+png(file="depth_binary_graph.png")
+  depth_binary_graph
+dev.off()
+
+# png of min sst
+png(file="sst_binary_min_graph.png")
+  sst_binary_min_graph
+dev.off()
+
+# png of max sst
+# png(file="sst_binary_max_graph.png")
+#  sst_binary_max_graph
+# dev.off()
+
+# png of current
+# png(file="current_binary_graph.png")
+# current_binary_graph
+# dev.off()
+
+# png of distance to shore
+png(file="dist_shore_binary_graph.png")
+dist_shore_binary_graph
+dev.off()
+
+# png of dissolved oxygrn
+png(file="DO_min_binary_graph.png")
+DO_min_binary_graph
+dev.off()
+
+# png overlay of all layers
+png(file="all_layers_graph.png")
+all_layers_graph
+dev.off()
+
+# convert the .png files to one .gif file using ImageMagicK
+system("convert -delay 80 *.png binary_layers.gif")
+
+# Remove png files
+file.remove(list.files(pattern=".png"))
+
+```
+

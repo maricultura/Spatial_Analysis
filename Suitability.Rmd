@@ -74,6 +74,34 @@ bound_BRA <- ne_countries(scale = 50, country = "Brazil", returnclass = "sf") %>
 
 ```
 
+EEZ Raster
+```{r}
+# Read in 1's raster
+raster_all_1 <- raster(paste0(path,"/raster_ones.tif"))
+
+# Crop to EEZ
+eez_all_1 <- crop(raster_all_1, eez_BRA)
+
+# Save raster (to use in app)
+writeRaster(eez_all_1, paste0(path, "/eez_all_1.tif"), overwrite = T)
+
+# Make df
+eez_all_1_df <- as.data.frame(eez_all_1, xy = T)
+
+# Graph with Brazil's outline
+eez_all_1_graph <- ggplot() +
+    geom_raster(data = eez_all_1_df,
+                mapping = aes(x = x, y = y, fill = as.factor(raster_ones))) +
+    geom_sf(data = bound_BRA) +
+  scale_fill_manual(
+    name = "", # Gives an empty title for the legend
+    labels = c("Not Suitable", "Suitable", ""),
+    values = c("lightblue1", "orange")) +
+  theme_void() +
+  theme(panel.grid.major = element_line(color = "white"))
+  
+eez_all_1_graph
+```
 
 
 Reclassifying depth to have 1s only if it's in between 25-100m, and 0s otherwise
@@ -92,16 +120,7 @@ depth_binary_1 <- reclassify(depth_mask,rcl= rcl_mat_depth)
 
 # Adding missing portion of EEZ using an raster cropped to the correct shape of the EEZ
 
-# Read in 1's raster
-raster_all_1 <- raster(paste0(path,"/raster_ones.tif"))
-
-# Crop to EEZ
-eez_all_1 <- crop(raster_all_1, eez_BRA)
-
-# Save raster (to use in app)
-writeRaster(eez_all_1, paste0(path, "/eez_all_1.tif"), overwrite = T)
-
-# Overlay two layers
+# Overlay with 1's raster with the correct shape of the EEZ
 depth_binary_2 <- overlay(depth_binary_1, eez_all_1, fun = function(a, b) {a + b})
 
 # Reclassification matrix for depth layer
@@ -119,8 +138,12 @@ depth_binary_df <- as.data.frame(depth_binary, xy = T)
 # Graph with Brazil's outline
 depth_binary_graph <- ggplot() +
     geom_raster(data = depth_binary_df,
-                mapping = aes(x = x, y = y, fill = depth_mask)) +
+                mapping = aes(x = x, y = y, fill = as.factor(layer))) +
     geom_sf(data = bound_BRA) +
+  scale_fill_manual(
+    name = "", # Gives an empty title for the legend
+    labels = c("Not Suitable", "Suitable", ""),
+    values = c("lightblue1", "orange")) +
   theme_void() +
   theme(panel.grid.major = element_line(color = "white"))
 
@@ -149,8 +172,12 @@ sst_binary_min_df <- as.data.frame(sst_binary_min, xy = T)
 # Graph with Brazil's outline
 sst_binary_min_graph <- ggplot() +
     geom_raster(data = sst_binary_min_df,
-                mapping = aes(x = x, y = y, fill = min_sst_mask)) +
+                mapping = aes(x = x, y = y, fill = as.factor(min_sst_mask))) +
     geom_sf(data = bound_BRA) +
+  scale_fill_manual(
+    name = "", # Gives an empty title for the legend
+    labels = c("Not Suitable", "Suitable", ""),
+    values = c("lightblue1", "orange")) +
   theme_void() +
   theme(panel.grid.major = element_line(color = "white"))
 
@@ -178,8 +205,12 @@ sst_binary_max_df <- as.data.frame(sst_binary_max, xy = T)
 # Graph with Brazil's outline
 sst_binary_max_graph <- ggplot() +
     geom_raster(data = sst_binary_max_df,
-                mapping = aes(x = x, y = y, fill = max_sst_mask)) +
+                mapping = aes(x = x, y = y, fill = as.factor(max_sst_mask))) +
     geom_sf(data = bound_BRA) +
+  scale_fill_manual(
+    name = "", # Gives an empty title for the legend
+    labels = c("Not Suitable", "Suitable", ""),
+    values = c("lightblue1", "orange")) +
   theme_void() +
   theme(panel.grid.major = element_line(color = "white"))
 
@@ -208,8 +239,12 @@ current_binary_df <- as.data.frame(current_binary, xy = T)
 # Graph with Brazil's outline
 current_binary_graph <- ggplot() +
     geom_raster(data = current_binary_df,
-                mapping = aes(x = x, y = y, fill = max_cv_mask)) +
+                mapping = aes(x = x, y = y, fill = as.factor(max_cv_mask))) +
     geom_sf(data = bound_BRA) +
+  scale_fill_manual(
+    name = "", # Gives an empty title for the legend
+    labels = c("Not Suitable", "Suitable", ""),
+    values = c("lightblue1", "orange")) +
   theme_void() +
   theme(panel.grid.major = element_line(color = "white"))
 
@@ -239,8 +274,12 @@ dist_shore_binary_df <- as.data.frame(dist_shore_binary, xy = T)
 # Graph with Brazil's outline
 dist_shore_binary_graph <- ggplot() +
     geom_raster(data = dist_shore_binary_df,
-                mapping = aes(x = x, y = y, fill = dist_shore)) +
+                mapping = aes(x = x, y = y, fill = as.factor(dist_shore))) +
     geom_sf(data = bound_BRA) +
+  scale_fill_manual(
+    name = "", # Gives an empty title for the legend
+    labels = c("Not Suitable", "Suitable", ""),
+    values = c("lightblue1", "orange")) +
   theme_void() +
   theme(panel.grid.major = element_line(color = "white"))
 
@@ -271,20 +310,37 @@ DO_min_binary_df <- as.data.frame(DO_min_binary, xy = T)
 # Graph with Brazil's outline
 DO_min_binary_graph <- ggplot() +
     geom_raster(data = DO_min_binary_df,
-                mapping = aes(x = x, y = y, fill = DO_min_mask)) +
+                mapping = aes(x = x, y = y, fill = as.factor(DO_min_mask))) +
     geom_sf(data = bound_BRA) +
+  scale_fill_manual(
+    name = "", # Gives an empty title for the legend
+    labels = c("Not Suitable", "Suitable", ""),
+    values = c("lightblue1", "orange")) +
   theme_void() +
   theme(panel.grid.major = element_line(color = "white"))
 
 DO_min_binary_graph
 ```
 
-
-Suitable areas
 ```{r}
-# Overlay all layers
-# Note: they all need to have the same extent and resolution
-suitable <- overlay(sst_binary_min, sst_binary_max, depth_binary, current_binary, dist_shore_binary, fun = function(a, b, c, d, e){a*b*c*d*e})
+##### Shipping lanes is missing ######
+```
+
+```{r}
+##### Sig. wave height? #####
+```
+
+
+Overlay of non-fixed layers
+```{r}
+# Note: all layers need to have the same extent and resolution
+suitable <- overlay(sst_binary_min,
+                    sst_binary_max,
+                    depth_binary,
+                    current_binary,
+                    dist_shore_binary,
+                    DO_min_binary,
+                    fun = function(a, b, c, d, e, f){a*b*c*d*e*f})
 
 # Plot suitable areas
 plot(suitable)
@@ -312,24 +368,16 @@ suitable_graph <- ggplot() +
   theme_void() +
   theme(panel.grid.major = element_line(color = "white"))
 
-### Additional code we could use
-# To add EEZ outline:
-# geom_sf(data = eez_BRA, fill = "transparent")
-
-# To add titles and subtitles:
-# labs(title = "Title",
-# subtitle = "Subtitle",
-# x = "x lab", y = "y lab")
-
 suitable_graph
-
-
 ```
 
-Env. constrains
+Overlay of Env. constrains
 ```{r}
 # Following presentation slides
-env_constrains <-  overlay(sst_binary_min, sst_binary_max,current_binary, fun = function(a, b, c){a*b*c})
+env_constrains <-  overlay(sst_binary_min,
+                           sst_binary_max,
+                           current_binary,
+                           fun = function(a, b, c){a*b*c})
 
 # Plot
 plot(env_constrains)
@@ -357,10 +405,15 @@ env_constrains_graph
 
 ```
 
-Cropped Layers
+Overlay of Fixed Barrier Layers
 ```{r}
 # Following presentation slides
-cropped_layers <-  overlay(mpas_binary, reefs_binary, reefs_artificial_binary, og_pipeline_binary, og_production_binary, fun = function(a, b, c, d, e){a*b*c*d*e})
+cropped_layers <-  overlay(mpas_binary,
+                           reefs_binary,
+                           reefs_artificial_binary,
+                           og_pipeline_binary,
+                           og_production_binary,
+                           fun = function(a, b, c, d, e){a*b*c*d*e})
 
 # Plot
 plot(cropped_layers)
@@ -388,10 +441,21 @@ cropped_layers_graph
 
 ```
 
-All Layers
+Overlay of all Layers
 ```{r}
 # Following presentation slides
-all_layers <-  overlay(sst_binary_min, sst_binary_max, depth_binary, current_binary, dist_shore_binary, mpas_binary, reefs_binary, reefs_artificial_binary, og_pipeline_binary, og_production_binary, fun = function(a, b, c, d, e, f, g, h, i, j){a*b*c*d*e*f*g*h*i*j})
+all_layers <-  overlay(sst_binary_min,
+                       sst_binary_max,
+                       depth_binary,
+                       current_binary,
+                       dist_shore_binary,
+                       DO_min_binary,
+                       mpas_binary,
+                       reefs_binary,
+                       reefs_artificial_binary,
+                       og_pipeline_binary,
+                       og_production_binary,
+                       fun = function(a, b, c, d, e, f, g, h, i, j, k){a*b*c*d*e*f*g*h*i*j*k})
 
 # Plot
 plot(all_layers)
