@@ -16,55 +16,98 @@ Requirements:
 ```{r}
 # Load required packages
 library(magick)
+library(png)
 ```
 
 
 ```{r}
+# First gif: Spatial conflicts
 # set working directory to gif folder
 setwd("gif")
+
+# png of MPAs
+png(file="mpas_binary_graph.png")
+mpas_binary_graph
+dev.off()
+
+# png of Reefs
+png(file="reefs_binary_graph.png")
+reefs_binary_graph
+dev.off()
+
+# png of artificial reefs
+png(file="reefs_artificial_binary_graph.png")
+reefs_artificial_binary_graph
+dev.off()
+
+# png of oil pipelines
+png(file="og_pipeline_binary_graph.png")
+og_pipeline_binary_graph
+dev.off()
+
+# png of oil production
+png(file="og_production_binary_graph.png")
+og_production_binary_graph
+dev.off()
+
+# png of shipping lanes
+png(file="shipping_binary_graph.png")
+shipping_binary_graph
+dev.off()
+
+# convert the .png files to one .gif file using ImageMagicK
+system("convert -delay 140 *.png spatial_conflicts.gif")
+
+# Remove png files
+file.remove(list.files(pattern=".png"))
+
+# Second gif: Infrastructure constraints
 
 # png of EEZ
 # png(file="eez_all_1_graph.png")
 #  eez_all_1_graph
 # dev.off()
 
+# png of current
+ png(file="current_binary_graph.png")
+ current_binary_graph
+ dev.off()
+
 # png of depth
 png(file="depth_binary_graph.png")
   depth_binary_graph
 dev.off()
-
-# png of min sst
-png(file="sst_binary_min_graph.png")
-  sst_binary_min_graph
-dev.off()
-
-# png of max sst
-# png(file="sst_binary_max_graph.png")
-#  sst_binary_max_graph
-# dev.off()
-
-# png of current
-# png(file="current_binary_graph.png")
-# current_binary_graph
-# dev.off()
 
 # png of distance to shore
 png(file="dist_shore_binary_graph.png")
 dist_shore_binary_graph
 dev.off()
 
-# png of dissolved oxygrn
+# convert the .png files to one .gif file using ImageMagicK
+system("convert -delay 140 *.png infrastructure_constraints.gif")
+
+# Remove png files
+file.remove(list.files(pattern=".png"))
+
+# Third gif: All layers
+
+# png of min sst
+png(file="sst_binary_min_graph.png")
+  sst_binary_min_graph
+  dev.off()
+
+# png of max sst
+ png(file="sst_binary_max_graph.png")
+ sst_binary_max_graph
+ dev.off()
+
+# png of dissolved oxygen
 png(file="DO_min_binary_graph.png")
 DO_min_binary_graph
 dev.off()
 
-# png overlay of all layers
-png(file="all_layers_graph.png")
-all_layers_graph
-dev.off()
-
 # convert the .png files to one .gif file using ImageMagicK
-system("convert -delay 80 *.png binary_layers.gif")
+system("convert -delay 140 *.png cobia.gif")
 
 # Remove png files
 file.remove(list.files(pattern=".png"))
