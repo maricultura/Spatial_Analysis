@@ -448,5 +448,25 @@ round(freq(all_layers, value = 1)*123.424, digits = 0) # resolution is 92.8 * 13
 
 ```
 
+Biomass Graph
+```{r}
+biomass_raster <- raster("/Volumes/GoogleDrive/Shared drives/Bren GP 2020 maricultura/Data/Raw_Data/Map_Outputs/biomass_map.tif")
 
+plot(biomass_raster)
+
+biomass_df <- as.data.frame(biomass_raster, xy = TRUE) 
+
+# Biomass (for presentation)
+biomass_graph <- ggplot() +
+    geom_raster(data = biomass_df,
+                mapping = aes(x = x, y = y, fill = biomass_map)) +
+   scale_fill_distiller(palette = "Spectral",
+                        guide = FALSE,
+                        na.value="white") +
+    geom_sf(data = bound_BRA, fill = "#DCDBE0") +
+   theme_void() +
+  theme(panel.grid.major = element_line(color = "white"))
+
+biomass_graph
+```
 
