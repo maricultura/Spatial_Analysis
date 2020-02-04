@@ -402,7 +402,7 @@ suitable_area(all_layers_no_cobia) # 9380.224 km2
 
 Overlay of all Layers
 ```{r}
-# Following presentation slides
+# Overlay
 all_layers <-  overlay(sst_binary_min,
                        sst_binary_max,
                        depth_binary,
@@ -420,7 +420,11 @@ all_layers <-  overlay(sst_binary_min,
 # Plot
 plot(all_layers)
 
-# Convert env. constrains raster to dataframe
+# Save raster
+writeRaster(all_layers, paste0(path, "/all_layers.tif"), overwrite = T)
+
+
+# Convert raster to dataframe
 all_layers_df <- as.data.frame(all_layers, xy = T) %>% 
   mutate(suitable= case_when(
     layer == 1 ~ "Suitable",
@@ -448,5 +452,15 @@ round(freq(all_layers, value = 1)*123.424, digits = 0) # resolution is 92.8 * 13
 
 ```
 
+Zoomed in area
+```{r}
+# Extent of zoomed in area
+extent_zoomed <- extent(c(6800000, 8100000, 7800000, 10000000))
+
+# Crop suitability map to zoomed area
+zoomed_all_layers <- crop(all_layers, extent_zoomed)
+plot(zoomed_all_layers)
+
+```
 
 
