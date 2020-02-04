@@ -62,6 +62,12 @@ CRS
 crs_BRA <- "+proj=poly +lat_0=0 +lon_0=-54 +x_0=5000000 +y_0=10000000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
 ```
 
+Source the area function 
+```{r}
+source("Area_Function.R")
+```
+
+
 Data for graphs
 ```{r}
 # Read in Brazil's EEZ
@@ -483,6 +489,28 @@ biomass_graph <- ggplot() +
     geom_sf(data = bound_BRA, fill = "#DCDBE0") +
    theme_void() +
   theme(panel.grid.major = element_line(color = "white"))
+
+biomass_graph
+
+
+cropped_biomass <- crop(biomass_raster, extent_zoomed)
+
+
+cropped_biomass_df <- as.data.frame(cropped_biomass, xy = TRUE)
+
+
+BRA_cropped <- st_crop(bound_BRA, extent_zoomed)
+
+
+biomass_graph <- ggplot() +
+    geom_raster(data = cropped_biomass_df,
+                mapping = aes(x = x, y = y, fill = biomass_map)) +
+  scale_fill_gradient(
+   low = "#56B1F7", high = "#132B43", na.value = "transparent") +
+    geom_sf(data = BRA_cropped, fill = "#DCDBE0") +
+     theme_void() +
+  theme(panel.grid.major = element_line(color = "white"))
+
 
 biomass_graph
 ```

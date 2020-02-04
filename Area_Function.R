@@ -6,6 +6,3 @@ suitable_area <- function (raster) {
   area_value <- sum(values(b), na.rm = T)/(10^6) # total area value in km^2
   print(area_value)
 }
-
-# Use function on suitable raster
-suitable_area(suitable)
