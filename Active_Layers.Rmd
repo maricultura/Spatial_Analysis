@@ -49,6 +49,11 @@ path <- paste0(team_path, "Shared drives/Bren GP 2020 maricultura/Data/Raw_Data/
 
 ```
 
+Source area function 
+
+```{r}
+source("Area_Function.R")
+```
 
 Read in Downloaded Data Layers from the Shared Drive: Bren GP 2020 maricultura/Data/Raw_Data/Active_Layers
 
