@@ -502,14 +502,26 @@ cropped_biomass_df <- as.data.frame(cropped_biomass, xy = TRUE)
 BRA_cropped <- st_crop(bound_BRA, extent_zoomed)
 
 
-biomass_graph <- ggplot() +
+#Cropping EEZ to put in background
+eez_all_1_cropped <- crop(eez_all_1, extent_zoomed)
+
+# Make df
+eez_all_1_cropped_df <- as.data.frame(eez_all_1_cropped, xy = T)
+
+# Crop polygon EEZ
+eez_BRA_cropped <- st_crop(eez_BRA, extent_zoomed)
+plot(eez_BRA_cropped)
+
+# Graph
+biomass_graph <- ggplot()  +
+  geom_sf(data = eez_BRA_cropped, fill = "#EFEFEF", color = "transparent") +
     geom_raster(data = cropped_biomass_df,
                 mapping = aes(x = x, y = y, fill = biomass_map)) +
   scale_fill_gradient(
    low = "#56B1F7", high = "#132B43", na.value = "transparent") +
     geom_sf(data = BRA_cropped, fill = "#DCDBE0") +
      theme_void() +
-  theme(panel.grid.major = element_line(color = "white"))
+  theme(panel.grid.major = element_line(color = "white")) 
 
 
 biomass_graph
