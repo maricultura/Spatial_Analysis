@@ -468,6 +468,29 @@ extent_zoomed <- extent(c(6800000, 8100000, 7800000, 10000000))
 zoomed_all_layers <- crop(all_layers, extent_zoomed)
 plot(zoomed_all_layers)
 
+# Convert raster to dataframe
+zoomed_all_layers_df <- as.data.frame(zoomed_all_layers, xy = T) %>% 
+  mutate(suitable= case_when(
+    layer == 1 ~ "Suitable",
+    layer != 1 ~ "Not Suitable"
+  ))
+
+# Cropping boundaries of Brazil
+BRA_cropped <- st_crop(bound_BRA, extent_zoomed)
+
+# Create finalized graph
+zoomed_all_layers_graph <- ggplot() +
+    geom_raster(data = zoomed_all_layers_df,
+                mapping = aes(x = x, y = y, fill = suitable)) +
+  scale_fill_manual(
+    name = "", # Gives an empty title for the legend
+    labels = c("Exclusive Economic Zone", "Suitable", ""),
+    values = c("#EFEFEF", "#0077e6")) +
+    geom_sf(data = BRA_cropped, fill = "#DCDBE0") +
+  theme_void() +
+  theme(panel.grid.major = element_line(color = "white"))
+
+zoomed_all_layers_graph
 ```
 
 Biomass Graph
@@ -497,10 +520,6 @@ cropped_biomass <- crop(biomass_raster, extent_zoomed)
 
 
 cropped_biomass_df <- as.data.frame(cropped_biomass, xy = TRUE)
-
-
-BRA_cropped <- st_crop(bound_BRA, extent_zoomed)
-
 
 #Cropping EEZ to put in background
 eez_all_1_cropped <- crop(eez_all_1, extent_zoomed)
