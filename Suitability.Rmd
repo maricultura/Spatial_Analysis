@@ -452,7 +452,7 @@ round(freq(all_layers, value = 1)*123.424, digits = 0) # resolution is 92.8 * 13
 
 ```
 
-<<<<<<< HEAD
+
 Zoomed in area
 ```{r}
 # Extent of zoomed in area
@@ -463,7 +463,7 @@ zoomed_all_layers <- crop(all_layers, extent_zoomed)
 plot(zoomed_all_layers)
 
 ```
-=======
+
 Biomass Graph
 ```{r}
 biomass_raster <- raster("/Volumes/GoogleDrive/Shared drives/Bren GP 2020 maricultura/Data/Raw_Data/Map_Outputs/biomass_map.tif")
@@ -471,7 +471,7 @@ biomass_raster <- raster("/Volumes/GoogleDrive/Shared drives/Bren GP 2020 maricu
 plot(biomass_raster)
 
 biomass_df <- as.data.frame(biomass_raster, xy = TRUE) 
->>>>>>> f45dc41d96b43ea273dcca60a275c39ea5127702
+
 
 # Biomass (for presentation)
 biomass_graph <- ggplot() +
