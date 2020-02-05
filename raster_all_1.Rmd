@@ -1,0 +1,27 @@
+---
+title: "raster_ones"
+author: "Anna Calle"
+date: "12/23/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Create Raster with all cells equal to 1 for App
+
+```{r}
+# Use empty raster as template
+raster_all_0 <- raster(paste0(path,"/empty_raster.tif"))
+
+# Reclassification matrix
+rcl_mat_1 <- c(-Inf, Inf, 1)
+
+# Reclasify raster to have 1s in all cells
+raster_all_1 <- reclassify(raster_zeros, rcl= rcl_mat_ones)
+
+# Save raster
+writeRaster(x = raster_all_1, filename = paste0(path,"/raster_ones.tif"), overwrite = T)
+```
+

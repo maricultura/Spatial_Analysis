@@ -1,0 +1,566 @@
+---
+title: "Active Layers"
+date: "11/5/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+# Load the Required Packages
+library(tidyverse)
+library(sf)
+library(sp)
+library(rgdal)
+library(raster)
+library(dplyr)
+library(rgeos)
+library(scales)
+library(fasterize)
+library(dismo)
+library(maptools)
+library(sdmpredictors)
+library(leaflet)
+library(maps)
+library(ncdf4)
+library(marmap)
+library(rnaturalearth)
+library(dplyr)
+library(ggmap)
+library(rmapshaper)
+
+```
+
+
+Set-Up for Downloading Data Using the "Maricultura" Google Drive File Stream
+```{r}
+# Create a Root to Extract Files 
+if(Sys.info()["sysname"] == "Windows"){ #If operating system is "Windows" use G: Drive
+  team_path <- "G:/"
+} else { # If it is not (i.e. Mac), use the Google Drive File Stream
+  team_path <- "/Volumes/GoogleDrive/"
+}
+
+#Create the Full File Path
+path <- paste0(team_path, "Shared drives/Bren GP 2020 maricultura/Data/Raw_Data/Active_Data_Layers")
+
+```
+
+
+Read in Downloaded Data Layers from the Shared Drive: Bren GP 2020 maricultura/Data/Raw_Data/Active_Layers
+
+Naming our Projection
+```{r}
+# Define CRS
+crs_BRA <- "+proj=poly +lat_0=0 +lon_0=-54 +x_0=5000000 +y_0=10000000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
+
+```
+
+Exclusive Economic Zone, EEZ, marineregions.org
+```{r}
+
+# Read File
+eez <- read_sf(dsn = path,
+                layer = "eez_v10")
+
+# Filtered to select only Brazil's EEZ
+eez_BRA <- eez %>% 
+  filter(ISO_Ter1 == "BRA")
+
+# Reproject EEZ
+eez_BRA <- st_transform(eez_BRA, crs_BRA)
+
+# Plot Brazil EEZ
+plot(eez_BRA$geometry)
+
+# View CRS
+#st_crs(eez_BRA)
+
+# Save shapefile
+st_write(eez_BRA, paste0(path, "/eez_BRA.shp"), delete_layer = TRUE)
+
+```
+
+To Read in Bio-Oracle
+Minimum and Maximum Sea-Surface Temperatures (SST), bio-oracle.org
+```{r}
+# Explore datasets in the 'sdmpredictors' package 
+# list_datasets() 
+
+# Explore layers in a dataset 
+# list_layers()
+
+# Download Files
+min_sst <- load_layers("BO_sstmin")
+max_sst <- load_layers("BO_sstmax")
+
+# Reproject to 5880 (Brazil's CRS)
+min_sst_proj <-  projectRaster(min_sst, crs = crs_BRA)
+max_sst_proj <-  projectRaster(max_sst, crs = crs_BRA)
+
+# View CRS
+st_crs(min_sst_proj)
+st_crs(max_sst_proj)
+
+# Crop to Brazil EEZ
+min_sst_crop <- crop(min_sst_proj, eez_BRA)
+max_sst_crop <- crop(max_sst_proj, eez_BRA)
+
+# Mask to Brazil EEZ
+min_sst_mask <- mask(min_sst_crop, eez_BRA)
+max_sst_mask <- mask(max_sst_crop, eez_BRA)
+
+# Save raster
+writeRaster(min_sst_mask, paste0(path, "/min_sst_mask.tif"), overwrite = T)
+writeRaster(max_sst_mask, paste0(path, "/max_sst_mask.tif"), overwrite = T)
+
+```
+
+Dissolved Oxygen (DO), bio-oracle.org
+```{r}
+# Explore datasets in the package 
+# list_datasets() 
+
+# Explore layers in a dataset 
+ list_layers()
+
+# Download Files
+DO_min <- load_layers("BO2_dissoxmin_bdmin")
+
+# Reproject to 5880 (Brazil's CRS)
+DO_min_proj <-  projectRaster(DO_min, crs = crs_BRA)
+
+# View CRS
+st_crs(DO_min_proj)
+
+# Crop to Brazil EEZ
+DO_min_crop <- crop(DO_min_proj, eez_BRA)
+
+# Mask to Brazil EEZ
+DO_min_mask <- mask(DO_min_crop, eez_BRA)
+
+# Plot
+plot(DO_min_mask)
+
+# Save raster
+writeRaster(DO_min_mask, paste0(path, "/DO_min_mask.tif"), overwrite = T)
+
+```
+
+Create an Empty Raster Using SST as a Template
+```{r}
+# Reclassification matrix for empty raster
+rcl_mat_r <- c(-Inf, Inf, 0)
+
+# Reclassify the depth layer to make it an empty raster
+empty_raster <- reclassify(max_sst_mask, rcl= rcl_mat_r)
+
+# Export empty raster
+writeRaster(x = empty_raster, filename = paste0(path,"/empty_raster.tif"), overwrite = T)
+
+```
+
+
+Depth, gebco.net
+```{r}
+# Read File
+depth <- raster(paste0(path,"/gebco_2019_n7.045066_s-35.78779_w-54.58321_e-26.01452.tif"))
+
+# View Histograms
+#hist(depth)
+
+# View Plots
+#plot(depth)
+
+# View CRS
+#st_crs(depth)
+
+# Reproject to 5880 (Brazil's CRS)
+depth_proj <- projectRaster(depth, crs = crs_BRA)
+
+# Resample to Bio-Oracle Cell Size (ATM Bio-Oracle Cell Size is the Standard)
+depth_resample <- resample(depth_proj, min_sst_crop,method='ngb',progress='text')
+
+# Crop to Brazil EEZ 
+depth_crop <- crop(depth_resample, eez_BRA)
+
+# Mask to Brazil EEZ
+depth_mask <- mask(depth_crop, eez_BRA)
+
+# Change NAs to 99999 to be able to fix missing part of the EEZ later
+depth_mask[is.na(depth_mask[])] <- 99999
+
+# Write a Raster for Suitability Analysis
+writeRaster(depth_mask, paste0(path, "/depth_mask.tif"), overwrite = T)
+```
+
+Current Velocity, (Maximum Velocity at Minimum Depth), bio-oracle.org
+```{r}
+# Download File 
+max_cv <- load_layers("BO2_curvelmax_bdmin")
+
+# View Histograms
+#hist(max_cv)
+
+# View Plots
+#plot(max_cv)
+
+# View CRS
+#st_crs(max_cv)
+
+# Reproject to 5880 (Brazil's CRS)
+max_cv_proj <-  projectRaster(max_cv, crs = crs_BRA)
+
+# Crop to Brazil EEZ
+max_cv_crop <- crop(max_cv_proj, eez_BRA)
+
+# Mask to Brazil EEZ
+max_cv_mask <- mask(max_cv_crop, eez_BRA)
+
+# View Cropped Histogram
+#hist(max_cv_mask)
+
+# View Cropped Plot
+#plot(max_cv_mask)
+
+ # Write a Raster for Suitability Analysis
+writeRaster(max_cv_mask, paste0(path, "/max_cv_mask.tif"), overwrite = T)
+
+
+```
+
+Distance to shore (Anna)
+```{r}
+# Import the limits of Brazil #110, 50, or 10 meters for scale (resolution)
+bound_BRA <- ne_countries(scale = 110, country = "Brazil", returnclass = "sf") %>%
+  st_transform(crs_BRA) %>% 
+  sf::st_crop(eez_BRA)
+
+# Rasterize coastline
+coastline_raster <- rasterize(bound_BRA, empty_raster, field = 1)
+
+# Calculate distance to nearest non-NA pixel and mask to EEZ
+dist_shore <- distance(coastline_raster)%>% 
+  mask(eez_BRA)
+
+# Plot
+plot(dist_shore)
+
+# Export raster
+writeRaster(x = dist_shore, filename = paste0(path,"/dist_shore.tif"), overwrite = T)
+```
+
+Marine Protected Areas (MPAs) - WWF
+```{r}
+
+# Download File
+mpas <- read_sf(dsn = path,
+                layer = "WDPA_Oct2019_marine-shapefile-polygons") 
+
+
+# Filter MPAs for Brazil
+mpas_BRA <- mpas %>% 
+  filter(ISO3 == "BRA")
+
+# Plot MPAs
+# plot(mpas_BRA$geometry)
+
+# View CRS
+#st_crs(mpas_BR)
+
+# Reproject to 5880 (Brazil's CRS)
+mpas_proj <- st_transform(mpas_BRA, crs = crs_BRA)
+
+# No Need to Crop to Brazil EEZ because Already Filtered for Brazil and Extent is set to EEZ
+
+# Do Not Need to Resample because MPAs is a Polygon
+
+# Rasterizing Steps for MPA Layer
+# Create a Binary MPA Raster
+mpas_binary <- rasterize(mpas_proj, empty_raster, field = 0, background = 1) %>% 
+  mask(eez_BRA)
+
+# Plot Reclassified MPA Layer
+plot(mpas_binary)
+#freq(mpas_binary)
+
+# Write a Raster for Suitability Analysis
+writeRaster(mpas_binary, paste0(path, "/mpas_binary.tif"), overwrite = T)
+
+```
+
+Reefs
+```{r}
+# Read in, Reproject, and Simplify Reefs Layer and Remove Z Dimension
+marine_ecosystems <- st_read(dsn = path, layer = "apzcm_alvo_ecossistemas_marinhos") %>% 
+  st_transform(crs_BRA) %>% 
+  ms_simplify(keep_shapes = TRUE) %>% 
+  st_zm(drop = TRUE, what = "ZM")
+
+# Create a Binary Reefs Rasters
+reefs_binary <- rasterize(marine_ecosystems, empty_raster, field = 0, background = 1) %>% 
+  mask(eez_BRA)
+
+# View Plots
+plot(reefs_binary)
+
+# Write a Raster for Suitability Analysis
+writeRaster(reefs_binary, paste0(path, "/reefs_binary.tif"), overwrite = T)
+
+```
+
+# Artificial reefs
+```{r}
+# Read in layer, reproject, and drop z dimension
+reefs_artificial <-  read_sf(dsn = path,
+                layer = "Artificial_Reefs") %>% 
+  st_transform(crs = crs_BRA) %>%
+  st_zm(drop = TRUE, what = "ZM")
+
+# Rasterize artificial reefs
+reefs_artificial_binary <- rasterize(reefs_artificial, empty_raster, field = 0, background = 1) %>%
+  mask(eez_BRA)
+
+# Plot
+plot(reefs_artificial_binary)
+
+# Export
+writeRaster(x = reefs_artificial_binary, filename = paste0(path,"/reefs_artificial_binary.tif"), overwrite = T)
+```
+
+
+# Important wetlands Ramsar
+```{r}
+# Read in layer, reproject, and drop z dimension
+wetlands <-  read_sf(dsn = path,
+                layer = "Important_Wetlands_Ramsar") %>% 
+  st_transform(crs = crs_BRA)  %>%
+  st_zm(drop = TRUE, what = "ZM")
+
+# Rasterize wetlands
+wetlands_binary <- rasterize(wetlands, empty_raster, field = 0, background = 1)%>% 
+  mask(eez_BRA)
+
+# Plot
+plot(wetlands_binary)
+
+# Export
+writeRaster(x = wetlands_binary, filename = paste0(path,"/wetlands_binary.tif"), overwrite = T)
+
+```
+
+
+---------Messy Beyond This Point-----------------
+
+
+
+Buffer EEZ
+```{r}
+eez_buffered <- st_buffer(eez_BRA, 100000)
+
+eez_buffered_proj <- st_transform(eez_buffered, crs = "+proj=moll +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +units=m +no_defs ") 
+
+plot(eez_buffered_proj$geometry)
+```
+
+
+
+
+Shipping Lanes
+```{r}
+# Read in and crop shipping to extent of buffered EEZ
+
+shipping <- raster(paste0(path, "/shipping.tif")) %>% 
+  crop(eez_buffered_proj)
+
+# Reproject to 5880 (Brazil's CRS) and applt focal function to smooth
+shipping_proj <- projectRaster(shipping, crs = crs_BRA) %>% 
+   focal(w = matrix(1, 3, 3), mean)                   
+
+
+shipping_proj <- shipping_proj > 12 # Filter values > 12 as T
+
+# Resample to Bio-Oracle Cell Size (ATM Bio-Oracle Cell Size is the Standard)
+shipping_resample <- resample(shipping_proj, min_sst_crop,method='ngb',progress='text')
+
+# Crop to Brazil EEZ 
+shipping_crop <- crop(shipping_resample, eez_BRA)
+
+# Invert values (0s to 1s and viceversa)
+rcl_mat_shipping <- c(-Inf, 0.1, 1,
+                   0.9, Inf, 0)
+# Mask to Brazil EEZ
+shipping_binary <- mask(shipping_crop, eez_BRA) %>% 
+  reclassify(rcl = rcl_mat_shipping)
+
+
+# Write a Raster for Suitability Analysis
+writeRaster(shipping_binary, paste0(path, "/shipping_binary.tif"), overwrite = T)
+
+plot(shipping_binary)
+
+```
+
+OG Pipelines
+```{r}
+# Download File
+og_pipeline <- read_sf(dsn = path,
+                layer = "OG_Pipeline")
+
+
+# Reproject to 5880 (Brazil's CRS)
+og_pipeline_proj <- st_transform(og_pipeline, crs = crs_BRA)
+
+
+# Rasterizing 
+# Create a Binary Raster
+og_pipeline_binary <- rasterize(og_pipeline_proj, empty_raster, field = 0, background = 1) %>% 
+  mask(eez_BRA)
+
+# Plot
+plot(og_pipeline_binary)
+
+# Write a Raster for Suitability Analysis
+writeRaster(og_pipeline_binary, paste0(path, "/og_pipeline_binary.tif"), overwrite = T)
+
+```
+
+Oil and gas production
+```{r}
+# Download File
+og_production <- read_sf(dsn = path,
+                layer = "Oil_and_Gas_Production_Fields")
+
+
+# Reproject to 5880 (Brazil's CRS)
+og_production_proj <- st_transform(og_production, crs = crs_BRA)
+
+
+# Rasterizing 
+# Create a Binary Raster
+og_production_binary <- rasterize(og_production_proj, empty_raster, field = 0, background = 1) %>% 
+  mask(eez_BRA)
+
+# Plot
+plot(og_production_binary)
+
+# Write a Raster for Suitability Analysis
+writeRaster(og_production_binary, paste0(path, "/og_production_binary.tif"), overwrite = T)
+
+```
+
+
+Wave Height
+```{r}
+
+# Download File
+waves <- raster("G:/Shared drives/Bren GP 2020 maricultura/Data/Raw_Data/Active_Data_Layers/aq_waveheight.asc")
+plot(waves)
+```
+
+
+
+
+
+
+Artisanal Fishing Areas, WWF - Needs More Info - Maybe Better to Leave for Discussion
+```{r}
+
+# Download File
+artisanal_areas <- read_sf(dsn = path,
+                layer = "Artisanal_fishing_Areas")
+
+
+# View Plots
+plot(artisanal_areas$geometry)
+
+
+# View CRS
+st_crs(artisanal_areas)
+
+
+# Reproject to EEZ
+artisanal_rpj <- st_transform(artisanal_areas, CRS("+init=epsg:4326"))
+
+# Crop to Brazil EEZ 
+artisanal_BR <- crop(artisanal_rpj, eez_BRA)
+
+# Mask to Brazil EEZ
+depth_BRA <- mask(depth_BR, eez_BRA)
+
+# Resample to Bio-Oracle Cell Size (ATM Bio-Oracle Cell Size is the Standard)
+depth_BRA_res <- resample(depth_BRA, min_sst_BRA,method='ngb',progress='text')
+
+# View Cropped Plot
+plot(depth_BRA_res)
+
+```
+
+
+# Distance from Shore 
+```{r}
+
+# Read in Created .tif File from Distance to Shore.Rmd
+dist_to_shore <- raster(paste0(path,"/distance_to_shore_coastline.tif"))
+
+# Reclassify Matrix for Distance to Shore
+rcl_matrix_dist_shore <- c(-Inf, 0, 0,
+                           0, 46300, 1,
+                           46300, Inf, 0)
+
+# Reclassify Distance to Shore Layer
+dist_shore_binary <- reclassify(dist_to_shore, rcl = rcl_matrix_dist_shore)
+
+
+#Plot Reclassified Layers
+plot(dist_shore_binary)
+
+# View Distance Mask
+plot(dist_to_shore)
+# NOTE: This mask is distance to NON-LAND, since the land values are the NA. If we want to do distance to LAND, we would have to reverse the mask. It should really matter though, as long as numerically it is 25
+
+
+# Set Maximum Shore Distance - JC's code
+max_shore_distance <- 46300
+
+shore_distance_mask <- dist_to_shore < 46300
+
+plot(shore_distance_mask)
+
+```
+
+
+Aquaculture
+```{r}
+# Download File
+aquaculture <- read_sf(dsn = path,
+                layer = "Aquaculture")
+
+# plot(aquaculture$geometry)
+
+# We need a step here where we crop the land aquaculture using the coastline (most of the polygons are on land but there a few on the EEZ as well)
+
+# Reproject to 5880 (Brazil's CRS)
+aquaculture_proj <- st_transform(aquaculture, crs = crs_BRA)
+
+
+# Rasterizing 
+# Create a Binary Raster
+aquaculture_binary <- rasterize(aquaculture_proj, empty_raster, field = 0, background = 1) %>% 
+  mask(eez_BRA)
+
+# Plot
+plot(aquaculture_binary)
+
+# Write a Raster for Suitability Analysis
+writeRaster(aquaculture_binary, paste0(path, "/aquaculture_binary.tif"), overwrite = T)
+
+```
+
+
+
+
+

@@ -10,6 +10,17 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 
+```{r}
+library(showtext)
+```
+
+```{r}
+# Adding font from google
+font_add_google(name = 'Montserrat', family = "montserrat")
+```
+
+
+
 Non-fixed variables
 ```{r}
 # Create vector with layer names
@@ -72,13 +83,75 @@ fixed_area_col <- ggplot(fixed_area_df, aes(x = fixed_layer_name, y = percent_ex
     aes(label = paste0(percent_excluded,"%"), y = percent_excluded + .4), 
     color = "black", 
     size = 5,
-    hjust = 1
+    hjust = 0.1
   ) 
  
 fixed_area_col
 
 ```
 
+```{r}
+ # Create vector with input names
+  input_names <- c("Min SST",
+                   "Max SST",
+                   "Depth",
+                   "Current Velocity",
+                   "Distance to Shore",
+                   "Dissolved Oxygen",
+                   "MPAs",
+                   "Reefs",
+                   "Artificial Reefs",
+                   "Oil Pipelines",
+                   "Oil Production",
+                   "Shipping Lanes")
+  
+  
+  # Create vector with number of 0 cells in each binary raster
+  freq_0 <- c(
+    freq(sst_binary_min, value = 0),
+    freq(sst_binary_max, value = 0),
+    freq(depth_binary, value = 0),
+    freq(current_binary, value = 0),
+    freq(dist_shore_binary, value = 0),
+    freq(DO_min_binary, value = 0),
+    freq(mpas_binary, value = 0),
+    freq(reefs_binary, value = 0),
+    freq(reefs_artificial_binary, value = 0),
+    freq(og_pipeline_binary, value = 0),
+    freq(og_production_binary, value = 0),
+    freq(shipping_binary, value = 0)
+  )
+  
+  # Create df with layer names, frequency of 0 cells, and percentage of excluded area
+  area_df <- data.frame(input_names, freq_0) %>% 
+      mutate(percent_excluded = round(freq_0*100/30959, digits = 2)) %>% 
+      arrange(percent_excluded) %>% 
+      mutate( input_names = factor(input_names, levels = input_names))
+  
+
+  # turn on showtext
+showtext_auto()
+  
+  # Create percentage excluded plot
+    excluded_plot <- 
+      ggplot(area_df, aes(x = input_names, y = percent_excluded)) +
+      geom_col(fill = "#BE2727") +
+      coord_flip() +
+      ylab("Percentage of EEZ Excluded") +
+      xlab("") +
+      scale_y_continuous( expand = c(0,0)) +
+      theme_classic(14, base_family = 'montserrat') +
+      geom_text(
+        aes(label = paste0(percent_excluded,"%"),
+            y = percent_excluded + 18), 
+        color = "black", 
+        family = 'montserrat' ,
+        size = 5,
+        hjust = 1
+      )
+    
+     excluded_plot
+```
 
 
 

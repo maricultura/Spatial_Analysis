@@ -1,0 +1,34 @@
+---
+title: "Graph_Function"
+author: "Anna Calle"
+date: "2/1/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+```
+
+```{r}
+binary_graph <- function(data_df){
+  
+  # if two values
+  ggplot() +
+    geom_raster(data = data_df,
+                mapping = aes(x = x, y = y, fill = as.factor(names(data_df)[3]))) +
+    geom_sf(data = bound_BRA, fill = "#DCDBE0") +
+  scale_fill_manual(
+    name = "", # Gives an empty title for the legend
+    labels = c("Exclusive Economic Zone", "Suitable", ""),
+    values = c("#EFEFEF", "#0077e6")) +
+  theme_void() +
+  theme(panel.grid.major = element_line(color = "white"))
+  # if one value
+
+}
+```
+
