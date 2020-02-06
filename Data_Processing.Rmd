@@ -251,6 +251,9 @@ plot(dist_shore)
 
 # Export raster
 writeRaster(x = dist_shore, filename = paste0(path,"/dist_shore.tif"), overwrite = T)
+
+plot(raster(paste0(path,"/dist_shore.tif")))
+
 ```
 
 Marine Protected Areas (MPAs) - WWF

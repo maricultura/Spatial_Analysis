@@ -447,7 +447,8 @@ all_layers_graph <- ggplot() +
     values = c("#EFEFEF", "#0077e6")) +
     geom_sf(data = bound_BRA, fill = "#DCDBE0") +
   theme_void() +
-  theme(panel.grid.major = element_line(color = "white"))
+  theme(panel.grid.major = element_line(color = "white")) +
+   annotation_scale(location = "br", style = "ticks")
 
 all_layers_graph
 
@@ -488,7 +489,8 @@ zoomed_all_layers_graph <- ggplot() +
     values = c("#EFEFEF", "#0077e6")) +
     geom_sf(data = BRA_cropped, fill = "#DCDBE0") +
   theme_void() +
-  theme(panel.grid.major = element_line(color = "white"))
+  theme(panel.grid.major = element_line(color = "white")) +
+   annotation_scale(location = "br", style = "ticks")
 
 zoomed_all_layers_graph
 ```
@@ -501,14 +503,13 @@ plot(biomass_raster)
 
 biomass_df <- as.data.frame(biomass_raster, xy = TRUE) 
 
-
 # Biomass (for presentation)
-biomass_graph <- ggplot() +
+biomass_graph <- ggplot()  +
+  geom_sf(data = eez_BRA, fill = "#EFEFEF", color = "transparent") +
     geom_raster(data = biomass_df,
                 mapping = aes(x = x, y = y, fill = biomass_map)) +
    scale_fill_gradient(
    low = "#EEE35F", high = "#1F9E10", na.value = "transparent", name = "Biomass (kg/cell)") +
-    geom_sf(data = BRA_cropped, fill = "#DCDBE0") +
     geom_sf(data = bound_BRA, fill = "#DCDBE0") +
    theme_void() +
   theme(panel.grid.major = element_line(color = "white"))
@@ -520,12 +521,6 @@ cropped_biomass <- crop(biomass_raster, extent_zoomed)
 
 
 cropped_biomass_df <- as.data.frame(cropped_biomass, xy = TRUE)
-
-#Cropping EEZ to put in background
-eez_all_1_cropped <- crop(eez_all_1, extent_zoomed)
-
-# Make df
-eez_all_1_cropped_df <- as.data.frame(eez_all_1_cropped, xy = T)
 
 # Crop polygon EEZ
 eez_BRA_cropped <- st_crop(eez_BRA, extent_zoomed)
