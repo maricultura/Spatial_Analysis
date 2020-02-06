@@ -550,6 +550,7 @@ npv_raster <- raster("/Volumes/GoogleDrive/Shared drives/Bren GP 2020 maricultur
 npv_df <- as.data.frame(npv_raster, xy = TRUE)
 
 npv_graph <- ggplot() +
+  geom_sf(data = eez_BRA, fill = "#EFEFEF", color = "transparent") +
     geom_raster(data = npv_df,
                 mapping = aes(x = x, y = y, fill = npv)) +
    scale_fill_gradient(
@@ -570,6 +571,7 @@ npv_df_zoom <- as.data.frame(cropped_npv, xy = TRUE)
 
 
 npv_graph_crop <- ggplot() +
+  geom_sf(data = eez_BRA_cropped, fill = "#EFEFEF", color = "transparent") +
     geom_raster(data = npv_df_zoom,
                 mapping = aes(x = x, y = y, fill = npv)) +
    scale_fill_gradient(
