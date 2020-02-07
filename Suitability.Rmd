@@ -156,6 +156,29 @@ depth_binary_graph <-  ggplot() +
 
 depth_binary_graph
 
+# Read in file (for presentation)
+depth_mask_incomplete <- raster(paste0(path,"/depth_mask_incomplete.tif"))
+
+# Make df for depth mask (for presentation)
+depth_mask_df <- as.data.frame(depth_mask_incomplete, xy = T)
+
+# Graph min SST (for presentation)
+depth_mask_graph <- ggplot() +
+    geom_raster(data = depth_mask_df,
+                mapping = aes(x = x, y = y, fill = depth_mask_incomplete)) +
+   scale_fill_distiller(palette = "GnBu",
+                        guide = FALSE,
+                        na.value="white",
+                        direction = -1) +
+    geom_sf(data = bound_BRA, fill = "#DCDBE0") +
+   theme_void() +
+  theme(panel.grid.major = element_line(color = "white"))
+
+depth_mask_graph
+
+# Depth suitable area (for presentation)
+suitable_area(depth_binary)
+
 ```
 
 Reclassify min SST layer to have 1s only if it is above 22°C, and 0s otherwise
@@ -509,10 +532,11 @@ biomass_graph <- ggplot()  +
     geom_raster(data = biomass_df,
                 mapping = aes(x = x, y = y, fill = biomass_map)) +
    scale_fill_gradient(
-   low = "#EEE35F", high = "#1F9E10", na.value = "transparent", name = "Biomass (kg/cell)") +
+   low = "#ecb3ff", high = "#330080", na.value = "transparent", name = "Biomass (kg/cell)") +
     geom_sf(data = bound_BRA, fill = "#DCDBE0") +
    theme_void() +
-  theme(panel.grid.major = element_line(color = "white"))
+  theme(panel.grid.major = element_line(color = "white")) +
+  annotation_scale(location = "br", style = "ticks")
 
 biomass_graph
 
@@ -532,10 +556,11 @@ biomass_graph_zoom <- ggplot()  +
     geom_raster(data = cropped_biomass_df,
                 mapping = aes(x = x, y = y, fill = biomass_map)) +
   scale_fill_gradient(
-   low = "#EEE35F", high = "#1F9E10", na.value = "transparent", name = "Biomass (kg/cell)") +
+   low = "#ecb3ff", high = "#330080", na.value = "transparent", name = "Biomass (kg/cell)") +
     geom_sf(data = BRA_cropped, fill = "#DCDBE0") +
      theme_void() +
-  theme(panel.grid.major = element_line(color = "white")) 
+  theme(panel.grid.major = element_line(color = "white")) +
+  annotation_scale(location = "br", style = "ticks")
 
 
 biomass_graph_zoom
@@ -558,7 +583,8 @@ npv_graph <- ggplot() +
     geom_sf(data = BRA_cropped, fill = "#DCDBE0") +
     geom_sf(data = bound_BRA, fill = "#DCDBE0") +
    theme_void() +
-  theme(panel.grid.major = element_line(color = "white"))
+  theme(panel.grid.major = element_line(color = "white")) +
+  annotation_scale(location = "br", style = "ticks")
 
 npv_graph
 
@@ -578,7 +604,8 @@ npv_graph_crop <- ggplot() +
    low = "#EEE35F", high = "#1F9E10", na.value = "transparent", name = "Dollars (usd)") +
     geom_sf(data = BRA_cropped, fill = "#DCDBE0") +
    theme_void() +
-  theme(panel.grid.major = element_line(color = "white"))
+  theme(panel.grid.major = element_line(color = "white")) +
+  annotation_scale(location = "br", style = "ticks")
 
 npv_graph_crop
 ```
