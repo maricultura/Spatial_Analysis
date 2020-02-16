@@ -93,6 +93,8 @@ Minimum and Maximum Sea-Surface Temperatures (SST), bio-oracle.org
 # Explore layers in a dataset 
 # list_layers()
 
+# Description of additional functions in the 'sdmpredictors' package: https://onlinelibrary.wiley.com/doi/pdf/10.1111/geb.12693
+
 # Download Files
 min_sst <- load_layers("BO_sstmin")
 max_sst <- load_layers("BO_sstmax")
