@@ -18,6 +18,7 @@ library(raster)
 library(ggplot2)
 library(dplyr)
 library(RColorBrewer)
+library(ggspatial)
 ```
 
 
@@ -67,20 +68,6 @@ Source the area function
 source("Area_Function.R")
 ```
 
-
-Data for graphs
-```{r}
-# Read in Brazil's EEZ
-eez_BRA <- read_sf(dsn = path,
-                layer = "eez_BRA")
-# Brazil's outline in correct projection and cropped to the EEZ's extent
-bound_BRA <- ne_countries(scale = 50, country = "Brazil", returnclass = "sf") %>%
-  st_transform(crs_BRA) %>% 
-  sf::st_crop( bound_BRA, y = extent(eez_BRA))
-
-
-```
-
 EEZ Raster
 ```{r}
 # Read in 1's raster
@@ -95,19 +82,6 @@ writeRaster(eez_all_1, paste0(path, "/eez_all_1.tif"), overwrite = T)
 # Make df
 eez_all_1_df <- as.data.frame(eez_all_1, xy = T)
 
-# Graph with Brazil's outline
-eez_all_1_graph <- ggplot() +
-    geom_raster(data = eez_all_1_df,
-                mapping = aes(x = x, y = y, fill = as.factor(raster_ones))) +
-    geom_sf(data = bound_BRA, fill = "#DCDBE0") +
-  scale_fill_manual(
-    name = "", # Gives an empty title for the legend
-    labels = c("Exclusive Economic Zone", "Suitable", ""),
-    values = c("#EFEFEF", "#0077e6")) +
-  theme_void() +
-  theme(panel.grid.major = element_line(color = "white"))
-  
-eez_all_1_graph
 ```
 
 
@@ -142,6 +116,357 @@ plot(depth_binary)
 # Make df
 depth_binary_df <- as.data.frame(depth_binary, xy = T)
 
+```
+
+Reclassify min SST layer to have 1s only if it is above 22°C, and 0s otherwise
+```{r}
+# Read in file
+min_sst_mask <- raster(paste0(path,"/min_sst_mask.tif"))
+
+# Reclassification matrix for min SST
+rcl_matrix_min <- c( -Inf, min_sst_value, 0,
+                min_sst_value, Inf, 1)
+
+# Reclassify min SST
+sst_binary_min <- reclassify(min_sst_mask, rcl = rcl_matrix_min)
+
+# Plot reclassified layer
+plot(sst_binary_min)
+```
+
+Reclassify max SST layer to have 1s only if it is less than 30°C, and 0s otherwise
+```{r}
+# Read in file
+max_sst_mask <- raster(paste0(path,"/max_sst_mask.tif"))
+
+# Reclassify matrix for max SST layer
+rcl_matrix_max <- c( -Inf, max_sst_value, 1,
+                max_sst_value, Inf, 0)
+
+# Reclassify max SST layer
+sst_binary_max <- reclassify(max_sst_mask, rcl = rcl_matrix_max)
+
+# Plot reclassified layer
+plot(sst_binary_max)
+
+# Make df
+sst_binary_max_df <- as.data.frame(sst_binary_max, xy = T)
+```
+
+Reclassify max current velocity to have 1s only if it is less than 1m/s, and 0s otherwise
+```{r}
+# Read in file
+max_cv_mask <- raster(paste0(path,"/max_cv_mask.tif"))
+
+# Reclassification matrix for current layer
+rcl_mat_current <- c(-Inf, max_cv_value, 1,
+                   max_cv_value, Inf, 0)
+
+# Reclassify the depth layer
+current_binary <- reclassify(max_cv_mask ,rcl= rcl_mat_current)
+
+# Plot reclassified layer
+plot(current_binary)
+
+# Make df
+current_binary_df <- as.data.frame(current_binary, xy = T)
+
+```
+
+Reclassify distance to shore layer to have 1s only if it is less than 25nm, and 0s otherwise
+```{r}
+# Read in file
+dist_shore <- raster(paste0(path,"/dist_shore.tif"))
+
+# Reclassify matrix for distance to shore layer
+rcl_matrix_dist_shore <- c( -Inf, 0, 0,
+                            0, max_dist_shore, 1,
+                            max_dist_shore, Inf, 0)
+
+# Reclassify distance to shore layer
+dist_shore_binary <- reclassify(dist_shore, rcl = rcl_matrix_dist_shore)
+
+# Plot reclassified layer
+plot(dist_shore_binary)
+```
+
+Reclassify DO layer to have 1s only if it is above 200.5 umol, and 0s otherwise
+```{r}
+
+# Units? \xbemol/m\x9f mol/ m3
+# Read in file
+DO_min_mask <- raster(paste0(path,"/DO_min_mask.tif"))
+
+plot(DO_min_mask)
+
+# Reclassification matrix for DO
+rcl_matrix_DO <- c( -Inf, min_DO_value, 0,
+                min_DO_value, Inf, 1)
+
+# Reclassify DO min
+DO_min_binary <- reclassify(DO_min_mask, rcl = rcl_matrix_DO)
+
+# Plot reclassified layer
+plot(DO_min_binary)
+
+```
+
+```{r}
+##### Sig. wave height? #####
+```
+
+Overlay of all layers minus species specific layers for cobia (temperature and DO)
+```{r}
+# Overlay
+all_layers_no_cobia <- overlay(
+                       depth_binary,
+                       current_binary,
+                       dist_shore_binary,
+                       mpas_binary,
+                       reefs_binary,
+                       reefs_artificial_binary,
+                       og_pipeline_binary,
+                       og_production_binary,
+                       shipping_binary,
+                       fun = function(a, b, c, d, e, f, g, h, i){a*b*c*d*e*f*g*h*i})
+
+# Plot
+plot(all_layers_no_cobia)
+
+# Convert env. constrains raster to dataframe
+all_layers_no_cobia_df <- as.data.frame(all_layers_no_cobia, xy = T) %>% 
+  mutate(suitable= case_when(
+    layer == 1 ~ "Suitable",
+    layer != 1 ~ "Not Suitable"
+  ))
+
+# Area calculation
+suitable_area(all_layers_no_cobia) # 9380.224 km2
+
+```
+
+
+Overlay of all Layers
+```{r}
+# Overlay
+all_layers <-  overlay(sst_binary_min,
+                       sst_binary_max,
+                       depth_binary,
+                       current_binary,
+                       dist_shore_binary,
+                       DO_min_binary,
+                       mpas_binary,
+                       reefs_binary,
+                       reefs_artificial_binary,
+                       og_pipeline_binary,
+                       og_production_binary,
+                       shipping_binary,
+                       fun = function(a, b, c, d, e, f, g, h, i, j, k, l){a*b*c*d*e*f*g*h*i*j*k*l})
+
+# Plot
+plot(all_layers)
+
+# Save raster
+writeRaster(all_layers, paste0(path, "/all_layers.tif"), overwrite = T)
+
+# Area calculation
+suitable_area(all_layers) # 9380.224 km
+
+round(freq(all_layers, value = 1)*123.424, digits = 0) # resolution is 92.8 * 13.3
+
+```
+
+
+Zoomed in area
+```{r}
+# Extent of zoomed in area
+extent_zoomed <- extent(c(6647998, 7500683, 8271044, 9114753)) # slides
+extent_zoomed2 <- extent(c(5842278.1292, 7384689.6834, 7896133.34, 9899060.4164)) # report
+extent_zoomed3 <- extent(c(6182933.4418, 7170203.0051, 8517513.8710, 9826513.4517))  # report
+
+# Crop suitability map to zoomed area
+zoomed_all_layers <- crop(all_layers, extent_zoomed3)
+plot(zoomed_all_layers)
+
+# Convert raster to dataframe
+zoomed_all_layers_df <- as.data.frame(zoomed_all_layers, xy = T) %>% 
+  mutate(suitable= case_when(
+    layer == 1 ~ "Suitable",
+    layer != 1 ~ "Not Suitable"
+  ))
+
+# Cropping boundaries, regions and states of Brazil
+BRA_cropped <- st_crop(bound_BRA, extent_zoomed3)
+regions_cropped <- st_crop(regions_BRA, extent_zoomed3)
+states_cropped <- st_crop(states_BRA, extent_zoomed3)
+
+
+
+# Create finalized graph
+zoomed_all_layers_graph <- ggplot() +
+    geom_raster(data = zoomed_all_layers_df,
+                mapping = aes(x = x, y = y, fill = suitable)) +
+  scale_fill_manual(
+    name = "", # Gives an empty title for the legend
+    labels = c("Exclusive Economic Zone", "Suitable", ""),
+    values = c("#EFEFEF", "#0077e6")) +
+    geom_sf(data = BRA_cropped, fill = "#DCDBE0") +
+  geom_sf(data = states_cropped,
+          size = 0.35,
+          color = "#787B7F" ) +
+  theme_void() +
+  theme(panel.grid.major = element_line(color = "white")) +
+   annotation_scale(location = "br", style = "ticks")
+
+zoomed_all_layers_graph
+```
+
+Biomass Graph
+```{r}
+biomass_raster <- raster(paste0(path,"/growth_map.tif"))
+plot(biomass_raster)
+
+# Sum biomass
+sum_biomass <- cellStats(biomass_raster, 'sum') # 16,115,494
+
+
+biomass_df <- as.data.frame(biomass_raster, xy = TRUE) 
+
+# Biomass (for presentation)
+biomass_graph <- ggplot()  +
+  geom_sf(data = eez_BRA, fill = "#EFEFEF", color = "transparent") +
+    geom_raster(data = biomass_df,
+                mapping = aes(x = x, y = y, fill = growth_map)) +
+   scale_fill_gradient(
+   low = "#ecb3ff", high = "#330080", na.value = "transparent", name = "Biomass (kg/cell)") +
+    geom_sf(data = bound_BRA, fill = "#DCDBE0") +
+  geom_sf(data = regions_BRA,
+          size = 0.35,
+          color = "#787B7F" ) +
+   theme_void() +
+  theme(panel.grid.major = element_line(color = "white")) +
+  annotation_scale(location = "br", style = "ticks")
+
+biomass_graph
+
+
+cropped_biomass <- crop(biomass_raster, extent_zoomed3)
+cropped_biomass_df <- as.data.frame(cropped_biomass, xy = TRUE)
+
+# Crop polygon EEZ
+eez_BRA_cropped <- st_crop(eez_BRA, extent_zoomed3)
+
+# plot(eez_BRA_cropped)
+
+# Graph
+biomass_graph_zoom <- ggplot()  +
+  geom_sf(data = eez_BRA_cropped, fill = "#EFEFEF", color = "transparent") +
+    geom_raster(data = cropped_biomass_df,
+                mapping = aes(x = x, y = y, fill = growth_map)) +
+  scale_fill_gradient(
+   low = "#ecb3ff", high = "#330080", na.value = "transparent", name = "Biomass (kg/cell)") +
+    geom_sf(data = BRA_cropped, fill = "#DCDBE0") +
+     theme_void() +
+  theme(panel.grid.major = element_line(color = "white")) +
+  annotation_scale(location = "br", style = "ticks")
+
+
+biomass_graph_zoom
+```
+
+npv
+
+```{r}
+
+npv_raster <- raster(paste0(path,"/profitability_map.tif"))
+
+npv_df <- as.data.frame(npv_raster, xy = TRUE)
+
+npv_graph <- ggplot() +
+  geom_sf(data = eez_BRA, fill = "#EFEFEF", color = "transparent") +
+    geom_raster(data = npv_df,
+                mapping = aes(x = x, y = y, fill = profitability_map)) +
+   scale_fill_gradient(
+   low = "#EEE35F", high = "#1F9E10", na.value = "transparent", name = "Dollars (usd)") +
+  geom_sf(data = regions_BRA,
+          size = 0.35,
+          color = "#787B7F" ) +
+    geom_sf(data = BRA_cropped, fill = "#DCDBE0") +
+    geom_sf(data = bound_BRA, fill = "#DCDBE0") +
+  geom_sf(data = regions_BRA,
+          size = 0.35,
+          color = "#787B7F" ) +
+   theme_void() +
+  theme(panel.grid.major = element_line(color = "white")) +
+  annotation_scale(location = "br", style = "ticks")
+
+npv_graph
+
+
+
+cropped_npv <- crop(npv_raster, extent_zoomed3)
+
+npv_df_zoom <- as.data.frame(cropped_npv, xy = TRUE)
+
+
+
+npv_graph_crop <- ggplot() +
+  geom_sf(data = eez_BRA_cropped, fill = "#EFEFEF", color = "transparent") +
+    geom_raster(data = npv_df_zoom,
+                mapping = aes(x = x, y = y, fill = profitability_map)) +
+   scale_fill_gradient(
+   low = "#EEE35F", high = "#1F9E10", na.value = "transparent", name = "Dollars (USD)") +
+    geom_sf(data = BRA_cropped, fill = "#DCDBE0") +
+   theme_void() +
+  theme(panel.grid.major = element_line(color = "white")) +
+  annotation_scale(location = "br", style = "ticks")
+
+npv_graph_crop
+```
+
+### Code used for presentations or additional graphs
+
+Data for graphs
+```{r}
+# Read in Brazil's EEZ
+eez_BRA <- read_sf(dsn = path,
+                layer = "eez_BRA")
+
+# Read in Brazil's EEZ
+regions_BRA <- read_sf(dsn = path,
+                layer = "regions_BRA")
+
+# States in Brazil
+states_BRA <- read_sf(dsn = path,
+                layer ="states_BRA")
+
+# Brazil's outline in correct projection and cropped to the EEZ's extent
+bound_BRA <- ne_countries(scale = 50, country = "Brazil", returnclass = "sf") %>%
+  st_transform(crs_BRA) %>% 
+  sf::st_crop( bound_BRA, y = extent(eez_BRA))
+```
+
+
+
+EEZ
+```{r}
+# Graph with Brazil's outline
+eez_all_1_graph <- ggplot() +
+    geom_raster(data = eez_all_1_df,
+                mapping = aes(x = x, y = y, fill = as.factor(raster_ones))) +
+    geom_sf(data = bound_BRA, fill = "#DCDBE0") +
+  scale_fill_manual(
+    name = "", # Gives an empty title for the legend
+    labels = c("Exclusive Economic Zone", "Suitable", ""),
+    values = c("#EFEFEF", "#0077e6")) +
+  theme_void() +
+  theme(panel.grid.major = element_line(color = "white"))
+  
+eez_all_1_graph
+```
+
+Depth
+```{r}
 # Graph with Brazil's outline
 depth_binary_graph <-  ggplot() +
     geom_raster(data = depth_binary_df,
@@ -178,23 +503,25 @@ depth_mask_graph
 
 # Depth suitable area (for presentation)
 suitable_area(depth_binary)
-
 ```
 
-Reclassify min SST layer to have 1s only if it is above 22°C, and 0s otherwise
+Min SST
 ```{r}
-# Read in file
-min_sst_mask <- raster(paste0(path,"/min_sst_mask.tif"))
+# Make df for min_sst_mask (for presentation)
+min_sst_mask_df <- as.data.frame(min_sst_mask, xy = T)
 
-# Reclassification matrix for min SST
-rcl_matrix_min <- c( -Inf, min_sst_value, 0,
-                min_sst_value, Inf, 1)
+# Graph min SST (for presentation)
+min_sst_mask_graph <- ggplot() +
+    geom_raster(data = min_sst_mask_df,
+                mapping = aes(x = x, y = y, fill = min_sst_mask)) +
+   scale_fill_distiller(palette = "Spectral",
+                        guide = FALSE,
+                        na.value="white") +
+    geom_sf(data = bound_BRA, fill = "#DCDBE0") +
+   theme_void() +
+  theme(panel.grid.major = element_line(color = "white"))
 
-# Reclassify min SST
-sst_binary_min <- reclassify(min_sst_mask, rcl = rcl_matrix_min)
-
-# Plot reclassified layer
-plot(sst_binary_min)
+min_sst_mask_graph
 
 # Area (for presentation)
 suitable_area(sst_binary_min)
@@ -216,42 +543,10 @@ sst_binary_min_graph <- ggplot() +
 
 sst_binary_min_graph
 
-# Make df for min_sst_mask (for presentation)
-min_sst_mask_df <- as.data.frame(min_sst_mask, xy = T)
-
-# Graph min SST (for presentation)
-min_sst_mask_graph <- ggplot() +
-    geom_raster(data = min_sst_mask_df,
-                mapping = aes(x = x, y = y, fill = min_sst_mask)) +
-   scale_fill_distiller(palette = "Spectral",
-                        guide = FALSE,
-                        na.value="white") +
-    geom_sf(data = bound_BRA, fill = "#DCDBE0") +
-   theme_void() +
-  theme(panel.grid.major = element_line(color = "white"))
-
-min_sst_mask_graph
-
-
 ```
 
-Reclassify max SST layer to have 1s only if it is less than 30°C, and 0s otherwise
+Max SST
 ```{r}
-# Read in file
-max_sst_mask <- raster(paste0(path,"/max_sst_mask.tif"))
-
-# Reclassify matrix for max SST layer
-rcl_matrix_max <- c( -Inf, max_sst_value, 1,
-                max_sst_value, Inf, 0)
-
-# Reclassify max SST layer
-sst_binary_max <- reclassify(max_sst_mask, rcl = rcl_matrix_max)
-
-# Plot reclassified layer
-plot(sst_binary_max)
-
-# Make df
-sst_binary_max_df <- as.data.frame(sst_binary_max, xy = T)
 
 # Graph with Brazil's outline
 sst_binary_max_graph <- ggplot() +
@@ -269,23 +564,29 @@ sst_binary_max_graph
 
 ```
 
-Reclassify max current velocity to have 1s only if it is less than 1m/s, and 0s otherwise
+DO
 ```{r}
-# Read in file
-max_cv_mask <- raster(paste0(path,"/max_cv_mask.tif"))
-
-# Reclassification matrix for current layer
-rcl_mat_current <- c(-Inf, max_cv_value, 1,
-                   max_cv_value, Inf, 0)
-
-# Reclassify the depth layer
-current_binary <- reclassify(max_cv_mask ,rcl= rcl_mat_current)
-
-# Plot reclassified layer
-plot(current_binary)
 
 # Make df
-current_binary_df <- as.data.frame(current_binary, xy = T)
+DO_min_binary_df <- as.data.frame(DO_min_binary, xy = T)
+
+# Graph with Brazil's outline
+DO_min_binary_graph <- ggplot() +
+    geom_raster(data = DO_min_binary_df,
+                mapping = aes(x = x, y = y, fill = as.factor(DO_min_mask))) +
+    geom_sf(data = bound_BRA, fill = "#DCDBE0") +
+  scale_fill_manual(
+    name = "", # Gives an empty title for the legend
+    labels = c("Exclusive Economic Zone", ""),
+    values = c("#0077e6")) +
+  theme_void() +
+  theme(panel.grid.major = element_line(color = "white"))
+
+DO_min_binary_graph
+```
+
+Current velocity
+```{r}
 
 # Graph with Brazil's outline
 current_binary_graph <- ggplot() +
@@ -300,24 +601,10 @@ current_binary_graph <- ggplot() +
   theme(panel.grid.major = element_line(color = "white"))
 
 current_binary_graph
-
 ```
 
-Reclassify distance to shore layer to have 1s only if it is less than 25nm, and 0s otherwise
+Distance to shore
 ```{r}
-# Read in file
-dist_shore <- raster(paste0(path,"/dist_shore.tif"))
-
-# Reclassify matrix for distance to shore layer
-rcl_matrix_dist_shore <- c( -Inf, 0, 0,
-                            0, max_dist_shore, 1,
-                            max_dist_shore, Inf, 0)
-
-# Reclassify distance to shore layer
-dist_shore_binary <- reclassify(dist_shore, rcl = rcl_matrix_dist_shore)
-
-# Plot reclassified layer
-plot(dist_shore_binary)
 
 # Make df
 dist_shore_binary_df <- as.data.frame(dist_shore_binary, xy = T)
@@ -338,72 +625,8 @@ dist_shore_binary_graph
 
 ```
 
-Reclassify DO layer to have 1s only if it is above 200.5 umol, and 0s otherwise
+Overlay (without biological)
 ```{r}
-
-# Units? \xbemol/m\x9f mol/ m3
-# Read in file
-DO_min_mask <- raster(paste0(path,"/DO_min_mask.tif"))
-
-plot(DO_min_mask)
-
-# Reclassification matrix for DO
-rcl_matrix_DO <- c( -Inf, min_DO_value, 0,
-                min_DO_value, Inf, 1)
-
-# Reclassify DO min
-DO_min_binary <- reclassify(DO_min_mask, rcl = rcl_matrix_DO)
-
-# Plot reclassified layer
-plot(DO_min_binary)
-
-# Make df
-DO_min_binary_df <- as.data.frame(DO_min_binary, xy = T)
-
-# Graph with Brazil's outline
-DO_min_binary_graph <- ggplot() +
-    geom_raster(data = DO_min_binary_df,
-                mapping = aes(x = x, y = y, fill = as.factor(DO_min_mask))) +
-    geom_sf(data = bound_BRA, fill = "#DCDBE0") +
-  scale_fill_manual(
-    name = "", # Gives an empty title for the legend
-    labels = c("Exclusive Economic Zone", ""),
-    values = c("#0077e6")) +
-  theme_void() +
-  theme(panel.grid.major = element_line(color = "white"))
-
-DO_min_binary_graph
-```
-
-```{r}
-##### Sig. wave height? #####
-```
-
-Overlay of all layers minus species specific layers for cobia (temperature and DO)
-```{r}
-# Overlay
-all_layers_no_cobia <- overlay(
-                       depth_binary,
-                       current_binary,
-                       dist_shore_binary,
-                       mpas_binary,
-                       reefs_binary,
-                       reefs_artificial_binary,
-                       og_pipeline_binary,
-                       og_production_binary,
-                       shipping_binary,
-                       fun = function(a, b, c, d, e, f, g, h, i){a*b*c*d*e*f*g*h*i})
-
-# Plot
-plot(all_layers_no_cobia)
-
-# Convert env. constrains raster to dataframe
-all_layers_no_cobia_df <- as.data.frame(all_layers_no_cobia, xy = T) %>% 
-  mutate(suitable= case_when(
-    layer == 1 ~ "Suitable",
-    layer != 1 ~ "Not Suitable"
-  ))
-
 # Create finalized graph
 all_layers_no_cobia_graph <- ggplot() +
     geom_raster(data = all_layers_no_cobia_df,
@@ -412,47 +635,19 @@ all_layers_no_cobia_graph <- ggplot() +
     name = "", # Gives an empty title for the legend
     labels = c("Exclusive Economic Zone", "Suitable", ""),
     values = c("#EFEFEF", "#0077e6")) +
-    geom_sf(data = bound_BRA, fill = "#DCDBE0") +
+    geom_sf(data = bound_BRA,
+            fill = "#DCDBE0") +
+  geom_sf(data = regions_BRA,
+          size = 0.35,
+          color = "#787B7F" ) +
   theme_void() +
   theme(panel.grid.major = element_line(color = "white"))
 
 all_layers_no_cobia_graph
-
-# Area calculation
-suitable_area(all_layers_no_cobia) # 9380.224 km2
-
 ```
 
-
-
-
-
-
-
-Overlay of all Layers
+Overlay all
 ```{r}
-# Overlay
-all_layers <-  overlay(sst_binary_min,
-                       sst_binary_max,
-                       depth_binary,
-                       current_binary,
-                       dist_shore_binary,
-                       DO_min_binary,
-                       mpas_binary,
-                       reefs_binary,
-                       reefs_artificial_binary,
-                       og_pipeline_binary,
-                       og_production_binary,
-                       shipping_binary,
-                       fun = function(a, b, c, d, e, f, g, h, i, j, k, l){a*b*c*d*e*f*g*h*i*j*k*l})
-
-# Plot
-plot(all_layers)
-
-# Save raster
-writeRaster(all_layers, paste0(path, "/all_layers.tif"), overwrite = T)
-
-
 # Convert raster to dataframe
 all_layers_df <- as.data.frame(all_layers, xy = T) %>% 
   mutate(suitable= case_when(
@@ -469,144 +664,21 @@ all_layers_graph <- ggplot() +
     labels = c("Exclusive Economic Zone", "Suitable", ""),
     values = c("#EFEFEF", "#0077e6")) +
     geom_sf(data = bound_BRA, fill = "#DCDBE0") +
+  geom_sf(data = regions_BRA,
+          size = 0.35,
+          color = "#787B7F" ) +
   theme_void() +
   theme(panel.grid.major = element_line(color = "white")) +
    annotation_scale(location = "br", style = "ticks")
 
 all_layers_graph
-
-# Area calculation
-suitable_area(all_layers) # 9380.224 km
-
-round(freq(all_layers, value = 1)*123.424, digits = 0) # resolution is 92.8 * 13.3
-
 ```
-
-
-Zoomed in area
-```{r}
-# Extent of zoomed in area
-extent_zoomed <- extent(c(6647998, 7500683, 8271044, 9114753))
-
-# Crop suitability map to zoomed area
-zoomed_all_layers <- crop(all_layers, extent_zoomed)
-plot(zoomed_all_layers)
-
-# Convert raster to dataframe
-zoomed_all_layers_df <- as.data.frame(zoomed_all_layers, xy = T) %>% 
-  mutate(suitable= case_when(
-    layer == 1 ~ "Suitable",
-    layer != 1 ~ "Not Suitable"
-  ))
-
-# Cropping boundaries of Brazil
-BRA_cropped <- st_crop(bound_BRA, extent_zoomed)
-
-# Create finalized graph
-zoomed_all_layers_graph <- ggplot() +
-    geom_raster(data = zoomed_all_layers_df,
-                mapping = aes(x = x, y = y, fill = suitable)) +
-  scale_fill_manual(
-    name = "", # Gives an empty title for the legend
-    labels = c("Exclusive Economic Zone", "Suitable", ""),
-    values = c("#EFEFEF", "#0077e6")) +
-    geom_sf(data = BRA_cropped, fill = "#DCDBE0") +
-  theme_void() +
-  theme(panel.grid.major = element_line(color = "white")) +
-   annotation_scale(location = "br", style = "ticks")
-
-zoomed_all_layers_graph
-```
-
-Biomass Graph
-```{r}
-biomass_raster <- raster("/Volumes/GoogleDrive/Shared drives/Bren GP 2020 maricultura/Data/Raw_Data/Map_Outputs/biomass_map.tif")
-
-plot(biomass_raster)
-
-biomass_df <- as.data.frame(biomass_raster, xy = TRUE) 
-
-# Biomass (for presentation)
-biomass_graph <- ggplot()  +
-  geom_sf(data = eez_BRA, fill = "#EFEFEF", color = "transparent") +
-    geom_raster(data = biomass_df,
-                mapping = aes(x = x, y = y, fill = biomass_map)) +
-   scale_fill_gradient(
-   low = "#ecb3ff", high = "#330080", na.value = "transparent", name = "Biomass (kg/cell)") +
-    geom_sf(data = bound_BRA, fill = "#DCDBE0") +
-   theme_void() +
-  theme(panel.grid.major = element_line(color = "white")) +
-  annotation_scale(location = "br", style = "ticks")
-
-biomass_graph
-
-
-cropped_biomass <- crop(biomass_raster, extent_zoomed)
-
-
-cropped_biomass_df <- as.data.frame(cropped_biomass, xy = TRUE)
-
-# Crop polygon EEZ
-eez_BRA_cropped <- st_crop(eez_BRA, extent_zoomed)
-plot(eez_BRA_cropped)
-
-# Graph
-biomass_graph_zoom <- ggplot()  +
-  geom_sf(data = eez_BRA_cropped, fill = "#EFEFEF", color = "transparent") +
-    geom_raster(data = cropped_biomass_df,
-                mapping = aes(x = x, y = y, fill = biomass_map)) +
-  scale_fill_gradient(
-   low = "#ecb3ff", high = "#330080", na.value = "transparent", name = "Biomass (kg/cell)") +
-    geom_sf(data = BRA_cropped, fill = "#DCDBE0") +
-     theme_void() +
-  theme(panel.grid.major = element_line(color = "white")) +
-  annotation_scale(location = "br", style = "ticks")
-
-
-biomass_graph_zoom
-```
-
-npv
 
 ```{r}
-
-npv_raster <- raster("/Volumes/GoogleDrive/Shared drives/Bren GP 2020 maricultura/Data/Raw_Data/Map_Outputs/npv.tif")
-
-npv_df <- as.data.frame(npv_raster, xy = TRUE)
-
-npv_graph <- ggplot() +
-  geom_sf(data = eez_BRA, fill = "#EFEFEF", color = "transparent") +
-    geom_raster(data = npv_df,
-                mapping = aes(x = x, y = y, fill = npv)) +
-   scale_fill_gradient(
-   low = "#EEE35F", high = "#1F9E10", na.value = "transparent", name = "Dollars (usd)") +
-    geom_sf(data = BRA_cropped, fill = "#DCDBE0") +
-    geom_sf(data = bound_BRA, fill = "#DCDBE0") +
-   theme_void() +
-  theme(panel.grid.major = element_line(color = "white")) +
-  annotation_scale(location = "br", style = "ticks")
-
-npv_graph
-
-
-
-cropped_npv <- crop(npv_raster, extent_zoomed)
-
-npv_df_zoom <- as.data.frame(cropped_npv, xy = TRUE)
-
-
-
-npv_graph_crop <- ggplot() +
-  geom_sf(data = eez_BRA_cropped, fill = "#EFEFEF", color = "transparent") +
-    geom_raster(data = npv_df_zoom,
-                mapping = aes(x = x, y = y, fill = npv)) +
-   scale_fill_gradient(
-   low = "#EEE35F", high = "#1F9E10", na.value = "transparent", name = "Dollars (usd)") +
-    geom_sf(data = BRA_cropped, fill = "#DCDBE0") +
-   theme_void() +
-  theme(panel.grid.major = element_line(color = "white")) +
-  annotation_scale(location = "br", style = "ticks")
-
-npv_graph_crop
+# Area all eez = 3827378
+# Proportion suitable 9380.224 * 100/3827378 = 0.2450822
+# Proportion eliminated = 99.755
 ```
+
+
 
